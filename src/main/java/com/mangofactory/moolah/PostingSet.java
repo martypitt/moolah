@@ -39,6 +39,15 @@ public class PostingSet extends ForwardingSet<Posting> {
 		}
 		return value;
 	}
+	public Money sumDebitsOnly()
+	{
+		Money value = Money.zero(currencyUnit);
+		for (Posting posting : this) {
+			if (posting.isDebit())
+				value = value.plus(posting.getValue());
+		}
+		return value;
+	}
 	@Override
 	protected Set<Posting> delegate() {
 		return delegate;

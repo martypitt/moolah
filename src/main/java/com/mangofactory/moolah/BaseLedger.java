@@ -11,6 +11,7 @@ import javax.persistence.Transient;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
+import com.mangofactory.moolah.exception.IncorrectAccountException;
 import com.mangofactory.moolah.exception.IncorrectCurrencyException;
 
 @MappedSuperclass
@@ -37,9 +38,17 @@ public class BaseLedger implements Ledger {
 	}
 	@Override
 	@Transient
+	/**
+	 * Returns the available balance.
+	 * 
+	 * An available balance is calculated as the current balance,
+	 * minus any held (uncommitted) debits.
+	 * Uncommitted credits are ignored.
+	 */
 	public Money getAvailableBalance()
 	{
-		Money uncomittedPostings = uncommittedPostings.sum();
+		Money uncomittedPostings = uncommittedPostings.sumDebitsOnly();
+		// uncommitedPostings are a negative value, so add them.
 		return getBalance().plus(uncomittedPostings).plus(account.getCreditLimit());
 	}
 	@SuppressWarnings("unused") // for JPA
@@ -60,7 +69,7 @@ public class BaseLedger implements Ledger {
 	private void assertIsForThisLedger(Posting posting) {
 		if (!posting.getLedger().equals(this))
 		{
-			throw new IllegalStateException("Posting is not for this ledger");
+			throw new IncorrectAccountException();
 		}
 		
 	}
@@ -79,6 +88,7 @@ public class BaseLedger implements Ledger {
 			throw new IllegalStateException("The transaction contains an error");
 		assertIsUncommittedTransaction(posting);
 		doInternalPost(posting);
+		assertIsForThisLedger(posting);
 		uncommittedPostings.remove(posting);
 		postings.add(posting);
 		return TransactionStatus.COMPLETED;
@@ -115,7 +125,10 @@ public class BaseLedger implements Ledger {
 
 	@Override
 	public boolean hasSufficientFunds(Posting posting) {
-		return getAvailableBalance().isGreaterThan(posting.getValue()) || getAvailableBalance().isEqual(posting.getValue());
+		if (posting.isCredit())
+			return true;
+		Money value = posting.getNegatedDebitValue();
+		return getAvailableBalance().isGreaterThan(value) || getAvailableBalance().isEqual(value);
 	}
 
 

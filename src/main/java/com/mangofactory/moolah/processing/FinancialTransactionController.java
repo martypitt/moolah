@@ -26,7 +26,7 @@ public class FinancialTransactionController {
 	 * 
 	 * @param transaction
 	 */
-	public void commit(FinancialTransaction transaction)
+	public TransactionStatus commit(FinancialTransaction transaction)
 	{
 		synchronized (transaction) {
 			if (transaction.getStatus().isErrorState())
@@ -37,15 +37,12 @@ public class FinancialTransactionController {
 			if (transaction.getStatus().equals(TransactionStatus.NOT_STARTED))
 				hold(transaction);
 			
-			if (!transaction.getStatus().isErrorState())
-			{
-				internalCommit(transaction);	
-			}
+			if (transaction.getStatus().isErrorState())
+				return transaction.getStatus();
+			
+			internalCommit(transaction);	
 		}
-		if (transaction.getStatus().isErrorState())
-		{
-			throw new FailedTransactionException(transaction.getStatus());
-		}
+		return transaction.getStatus();
 	}
 	public void commit(Collection<? extends Transactable> transactables)
 	{
@@ -86,13 +83,14 @@ public class FinancialTransactionController {
 				transactionStatus = posting.hold();
 			} catch (Exception e)
 			{
-				log.error("Error thrown when processing debit hold",e);
+				log.error("Error thrown when processing hold",e);
 				transactionStatus = TransactionStatus.INTERNAL_ERROR;
 			}
 			if (transactionStatus.isErrorState())
 			{
 				transaction.setStatus(transactionStatus);
 				rollback(transaction);
+				break;
 			}
 		}
 		transaction.setStatus(transactionStatus);
@@ -124,7 +122,7 @@ public class FinancialTransactionController {
 		{
 			try
 			{
-				posting.commit();
+				status = posting.commit();
 			} catch (Exception e)
 			{
 				log.error("Error thrown when processing debit commit",e);
@@ -134,6 +132,7 @@ public class FinancialTransactionController {
 			{
 				transaction.setStatus(status);
 				rollback(transaction);
+				break;
 			}
 		}
 		transaction.setStatus(status);

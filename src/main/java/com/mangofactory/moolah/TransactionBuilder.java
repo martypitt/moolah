@@ -83,10 +83,8 @@ public class TransactionBuilder {
 	}
 	Set<Posting> createPostings() {
 		Set<Posting> postings = new HashSet<Posting>();
-		Posting debitPosting = new Posting(amount.negated(),debitEntity.getLedger());
-		Posting creditPosting = new Posting(amount,creditEntity.getLedger());
-		postings.add(debitPosting);
-		postings.add(creditPosting);
+		postings.add(Posting.debitOf(amount,debitEntity.getLedger()));
+		postings.add(Posting.creditOf(amount,creditEntity.getLedger()));
 		return postings;
 	}
 	private String getId() {

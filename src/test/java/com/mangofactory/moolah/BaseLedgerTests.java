@@ -9,8 +9,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
+
+import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -19,6 +23,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.mangofactory.moolah.exception.IncorrectAccountException;
 import com.mangofactory.moolah.exception.IncorrectCurrencyException;
 import com.mangofactory.moolah.processing.FinancialTransactionController;
+import static com.mangofactory.moolah.TestHelpers.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BaseLedgerTests {
@@ -37,6 +42,7 @@ public class BaseLedgerTests {
 		controller = new FinancialTransactionController();
 		when(cashAccount.getLedger()).thenReturn(new CashAccountLedger(AUD, cashAccount));
 		when(testAccount.getLedger()).thenReturn(new BaseLedger(AUD, testAccount));
+		when(testAccount.getCreditLimit()).thenReturn(BigDecimal.ZERO);
 	}
 	@Test
 	public void whenCreatedThatBalanceIsZero()
@@ -56,6 +62,7 @@ public class BaseLedgerTests {
 	}
 
 	@Test(expected=IllegalStateException.class)
+	@Ignore("Unsure if this is valid")
 	public void whenBothCreditorAndDebitorAreTheSame_that_transactionStateIsInvalid()
 	{
 		FinancialTransaction transaction = TransactionBuilder.newTransaction()
@@ -99,7 +106,7 @@ public class BaseLedgerTests {
 		controller.commit(TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)
-				.amount(Money.of(AUD,100)));
+				.amount(AUD(100)));
 		assertThat(testAccount.getLedger().getBalance(), equalTo(Money.of(AUD, 100)));
 		assertThat(testAccount.getLedger().getAvailableBalance(), equalTo(Money.of(AUD, 100)));
 		FinancialTransaction transaction = controller.commit(TransactionBuilder.newTransaction()
@@ -125,7 +132,7 @@ public class BaseLedgerTests {
 		FinancialTransaction transaction = controller.commit(TransactionBuilder.newTransaction()
 				.debit(testAccount)
 				.credit(cashAccount)
-				.amount(Money.of(AUD,100)));
+				.amount(AUD(100)));
 
 		assertThat(transaction.getStatus(), equalTo(TransactionStatus.REJECTED_INSUFFICIENT_FUNDS));
 		assertThat(testAccount.getLedger().getBalance(),equalTo(Money.of(AUD,10)));
@@ -138,21 +145,21 @@ public class BaseLedgerTests {
 		controller.commit(TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)
-				.amount(Money.of(AUD,1000)));
+				.amount(AUD(1000)));
 		controller.hold(TransactionBuilder.newTransaction()
 				.credit(cashAccount)
 				.debit(testAccount)
-				.amount(Money.of(AUD,100)));
+				.amount(AUD(100)));
 		// testAccount now has $1000 cash, and a hold on $100
-		assertThat(testAccount.getLedger().getBalance(),equalTo(Money.of(AUD,1000)));
+		assertThat(testAccount.getLedger().getBalance(),equalTo(AUD(1000)));
 		assertThat(testAccount.getLedger().getAvailableBalance(),equalTo(Money.of(AUD,900)));
 
 		controller.hold(TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)
-				.amount(Money.of(AUD,100)));
+				.amount(AUD(100)));
 
-		assertThat(testAccount.getLedger().getBalance(),equalTo(Money.of(AUD,1000)));
+		assertThat(testAccount.getLedger().getBalance(),equalTo(AUD(1000)));
 		// Note that credits don't appear in the available balance.
 		assertThat(testAccount.getLedger().getAvailableBalance(),equalTo(Money.of(AUD,900)));
 	}
@@ -162,15 +169,15 @@ public class BaseLedgerTests {
 		controller.commit(TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)
-				.amount(Money.of(AUD,1000)));
+				.amount(AUD(1000)));
 		controller.hold(TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)
-				.amount(Money.of(AUD,100)));
+				.amount(AUD(100)));
 		// testAccount now has $1000 cash, with a held credit for a further $100
-		assertThat(testAccount.getLedger().getBalance(),equalTo(Money.of(AUD,1000)));
+		assertThat(testAccount.getLedger().getBalance(),equalTo(AUD(1000)));
 		// Held credits don't count towards available balance.
-		assertThat(testAccount.getLedger().getAvailableBalance(),equalTo(Money.of(AUD,1000)));
+		assertThat(testAccount.getLedger().getAvailableBalance(),equalTo(AUD(1000)));
 	}
 	
 	@Test
@@ -179,13 +186,14 @@ public class BaseLedgerTests {
 		Ledger exceptionThrowingLedger = mock(Ledger.class);
 		when(exceptionThrowingLedger.hold(any(Posting.class))).thenReturn(TransactionStatus.HELD);
 		when(exceptionThrowingLedger.commit(any(Posting.class))).thenThrow(NullPointerException.class);
-		
+		when(exceptionThrowingLedger.canRollback(any(Posting.class))).thenReturn(true);
 		when(testAccount.getLedger()).thenReturn(exceptionThrowingLedger);
 		
 		FinancialTransaction transaction = controller.commit(TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)
-				.amount(Money.of(AUD,1000)));
+				.amount(AUD(1000)));	
+		
 		Posting posting = transaction.getPostingFor(exceptionThrowingLedger);
 		verify(exceptionThrowingLedger).rollback(posting);
 		assertThat(transaction.getStatus(), equalTo(TransactionStatus.INTERNAL_ERROR));
@@ -197,11 +205,11 @@ public class BaseLedgerTests {
 		Ledger exceptionThrowingLedger = mock(Ledger.class);
 		when(exceptionThrowingLedger.hold(any(Posting.class))).thenThrow(NullPointerException.class);
 		when(testAccount.getLedger()).thenReturn(exceptionThrowingLedger);
-		
+		when(exceptionThrowingLedger.canRollback(any(Posting.class))).thenReturn(true);
 		FinancialTransaction transaction = controller.commit(TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)
-				.amount(Money.of(AUD,1000)));
+				.amount(AUD(1000)));
 		Posting posting = transaction.getPostingFor(exceptionThrowingLedger);
 		verify(exceptionThrowingLedger).rollback(posting);
 		assertThat(transaction.getStatus(), equalTo(TransactionStatus.INTERNAL_ERROR));
@@ -212,7 +220,4 @@ public class BaseLedgerTests {
 			posting.hold();
 		}
 	}	
-	
-	
-	
 }
