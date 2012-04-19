@@ -9,14 +9,14 @@ import org.joda.money.Money;
 
 import com.google.common.collect.ForwardingSet;
 
-public class PostingSet extends ForwardingSet<Posting> {
+public class PostingSet extends ForwardingSet<LedgerPost> {
 
-	private Set<Posting> delegate;
+	private Set<LedgerPost> delegate;
 	private CurrencyUnit currencyUnit;
 	public PostingSet(CurrencyUnit currencyUnit) {
-		this (currencyUnit, new CopyOnWriteArraySet<Posting>());
+		this (currencyUnit, new CopyOnWriteArraySet<LedgerPost>());
 	}
-	public PostingSet(CurrencyUnit currencyUnit, Set<Posting> postings)
+	public PostingSet(CurrencyUnit currencyUnit, Set<LedgerPost> postings)
 	{
 		this.delegate = postings;
 		this.currencyUnit = currencyUnit;
@@ -32,7 +32,7 @@ public class PostingSet extends ForwardingSet<Posting> {
 	public Money sum()
 	{
 		Money value = Money.zero(currencyUnit);
-		for (Posting posting : this) {
+		for (LedgerPost posting : this) {
 			value = value.plus(posting.getValue());
 		}
 		return value;
@@ -44,23 +44,23 @@ public class PostingSet extends ForwardingSet<Posting> {
 	public Money sumDebitsOnly()
 	{
 		Money value = Money.zero(currencyUnit);
-		for (Posting posting : this) {
+		for (LedgerPost posting : this) {
 			if (posting.isDebit())
 				value = value.plus(posting.getValue());
 		}
 		return value;
 	}
 	@Override
-	protected Set<Posting> delegate() {
+	protected Set<LedgerPost> delegate() {
 		return delegate;
 	}
-	public Set<Posting> asSet()
+	public Set<LedgerPost> asSet()
 	{
-		return new HashSet<Posting>(this);
+		return new HashSet<LedgerPost>(this);
 	}
 	public Money sumCreditsOnly() {
 		Money value = Money.zero(currencyUnit);
-		for (Posting posting : this) {
+		for (LedgerPost posting : this) {
 			if (posting.isCredit())
 				value = value.plus(posting.getValue());
 		}

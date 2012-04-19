@@ -9,10 +9,10 @@ public interface Ledger {
 	Money getAvailableBalance();
 	PostingSet getPostings();
 	CurrencyUnit getCurrency();
-	TransactionStatus hold(Posting posting);
-	boolean hasSufficientFunds(Posting posting);
-	void rollback(Posting posting);
-	TransactionStatus commit(Posting posting);
+	TransactionStatus hold(LedgerPost posting);
+	boolean hasSufficientFunds(LedgerPost posting);
+	void rollback(LedgerPost posting);
+	TransactionStatus commit(LedgerPost posting);
 	Account getAccount();
-	boolean canRollback(Posting posting);
+	boolean canRollback(LedgerPost posting);
 }

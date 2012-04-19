@@ -57,7 +57,7 @@ public class BaseLedger implements Ledger {
 		this.balance = balance.getAmount();
 	}
 	@Override
-	public TransactionStatus hold(Posting posting)
+	public TransactionStatus hold(LedgerPost posting)
 	{
 		synchronized (this) {
 			assertCorrectCurrency(posting);
@@ -66,7 +66,7 @@ public class BaseLedger implements Ledger {
 			return processHold(posting);
 		}
 	}
-	private void assertIsForThisLedger(Posting posting) {
+	private void assertIsForThisLedger(LedgerPost posting) {
 		if (!posting.getLedger().equals(this))
 		{
 			throw new IncorrectAccountException();
@@ -75,14 +75,14 @@ public class BaseLedger implements Ledger {
 	}
 
 	private void assertIsNotUncommittedPosting(
-			Posting posting) {
+			LedgerPost posting) {
 		if (uncommittedPostings.contains(posting))
 			throw new IllegalStateException("Transaction has already been held, but not committed");
 	}
 
 
 	@Override
-	public TransactionStatus commit(Posting posting)
+	public TransactionStatus commit(LedgerPost posting)
 	{
 		if (posting.getTransactionStatus().isErrorState())
 			throw new IllegalStateException("The transaction contains an error");
@@ -94,20 +94,20 @@ public class BaseLedger implements Ledger {
 		return TransactionStatus.COMPLETED;
 
 	}
-	private void doInternalPost(Posting posting)
+	private void doInternalPost(LedgerPost posting)
 	{
 		this.balance = balance.add(posting.getValue().getAmount());
 	}
 
 
-	void assertIsUncommittedTransaction(Posting transaction) {
+	void assertIsUncommittedTransaction(LedgerPost transaction) {
 		if (!uncommittedPostings.contains(transaction))
 		{
 			throw new IllegalStateException("The supplied transaction has not been applied to this ledger");
 		}
 	}
 
-	private TransactionStatus processHold(Posting posting) {
+	private TransactionStatus processHold(LedgerPost posting) {
 		if (!hasSufficientFunds(posting))
 		{
 			return TransactionStatus.REJECTED_INSUFFICIENT_FUNDS;
@@ -118,13 +118,13 @@ public class BaseLedger implements Ledger {
 	}
 
 
-	private void assertCorrectCurrency(Posting posting) {
+	private void assertCorrectCurrency(LedgerPost posting) {
 		if (!posting.getCurrencyUnit().equals(getCurrency()))
 			throw new IncorrectCurrencyException(getCurrency(),posting.getCurrencyUnit());
 	}
 
 	@Override
-	public boolean hasSufficientFunds(Posting posting) {
+	public boolean hasSufficientFunds(LedgerPost posting) {
 		if (posting.isCredit())
 			return true;
 		Money value = posting.getNegatedDebitValue();
@@ -133,7 +133,7 @@ public class BaseLedger implements Ledger {
 
 
 	@Override
-	public void rollback(Posting posting) {
+	public void rollback(LedgerPost posting) {
 		if (uncommittedPostings.contains(posting))
 		{
 			uncommittedPostings.remove(posting);
@@ -177,12 +177,12 @@ public class BaseLedger implements Ledger {
 	 * keep persistent transactions that have occurred after the last balance point.
 	 * @return
 	 */
-	@OneToMany(fetch=FetchType.EAGER)
-	protected Set<Posting> getPersistentTransactions()
+	@OneToMany(fetch=FetchType.EAGER,mappedBy="ledger")
+	protected Set<LedgerPost> getPersistentTransactions()
 	{
 		return postings.asSet();
 	}
-	protected void setPersistentTransactions(Set<Posting> value)
+	protected void setPersistentTransactions(Set<LedgerPost> value)
 	{
 		postings = new PostingSet(currency,value);
 	}
@@ -192,7 +192,7 @@ public class BaseLedger implements Ledger {
 		return postings;
 	}
 	@Override
-	public boolean canRollback(Posting posting)
+	public boolean canRollback(LedgerPost posting)
 	{
 		return uncommittedPostings.contains(posting);
 	}

@@ -1,7 +1,5 @@
 package com.mangofactory.moolah;
 
-import java.math.BigDecimal;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,8 +12,8 @@ import org.joda.money.Money;
 
 import com.mangofactory.moolah.persistence.AbstractPersistentLedger;
 
-@Entity
-public class Posting {
+@Entity(name="LedgerPosting")
+public class LedgerPost {
 
 	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	private Long id;
@@ -32,17 +30,17 @@ public class Posting {
 	 * If value has a monetary value > 0, it is negated.
 	 * Therefore, it is safe to call debitOf() and creditOf() with the same value. 
 	 */
-	public static Posting debitOf(Money value,Ledger ledger)
+	public static LedgerPost debitOf(Money value,Ledger ledger)
 	{
 		if (value.isPositive())
 			value = value.negated();
-		return new Posting(value, ledger);
+		return new LedgerPost(value, ledger);
 	}
-	public static Posting creditOf(Money value,Ledger ledger)
+	public static LedgerPost creditOf(Money value,Ledger ledger)
 	{
-		return new Posting(value, ledger);
+		return new LedgerPost(value, ledger);
 	}
-	private Posting(Money value, Ledger ledger)
+	private LedgerPost(Money value, Ledger ledger)
 	{
 		this.value = value;
 		this.ledger = ledger;
@@ -72,7 +70,7 @@ public class Posting {
 	
 	
 	@SuppressWarnings("unused")
-	private Posting() {} 
+	private LedgerPost() {} 
 	@ManyToOne @Immutable
 	private FinancialTransaction transaction;
 

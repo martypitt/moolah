@@ -82,7 +82,7 @@ public class BaseLedgerTests {
 				.credit(testAccount)
 				.amount(Money.of(USD,10))
 				.build();
-		Posting posting = transaction.getPostingFor(cashAccount.getLedger());
+		LedgerPost posting = transaction.getPostingFor(cashAccount.getLedger());
 		BaseLedger ledger = new BaseLedger(USD, wrongAccount);
 		ledger.hold(posting);
 	}
@@ -184,9 +184,9 @@ public class BaseLedgerTests {
 	public void whenExceptionIsThrownDuringCommit_that_transactionIsRolledBack()
 	{
 		Ledger exceptionThrowingLedger = mock(Ledger.class);
-		when(exceptionThrowingLedger.hold(any(Posting.class))).thenReturn(TransactionStatus.HELD);
-		when(exceptionThrowingLedger.commit(any(Posting.class))).thenThrow(NullPointerException.class);
-		when(exceptionThrowingLedger.canRollback(any(Posting.class))).thenReturn(true);
+		when(exceptionThrowingLedger.hold(any(LedgerPost.class))).thenReturn(TransactionStatus.HELD);
+		when(exceptionThrowingLedger.commit(any(LedgerPost.class))).thenThrow(NullPointerException.class);
+		when(exceptionThrowingLedger.canRollback(any(LedgerPost.class))).thenReturn(true);
 		when(testAccount.getLedger()).thenReturn(exceptionThrowingLedger);
 		
 		FinancialTransaction transaction = controller.commit(TransactionBuilder.newTransaction()
@@ -194,7 +194,7 @@ public class BaseLedgerTests {
 				.credit(testAccount)
 				.amount(AUD(1000)));	
 		
-		Posting posting = transaction.getPostingFor(exceptionThrowingLedger);
+		LedgerPost posting = transaction.getPostingFor(exceptionThrowingLedger);
 		verify(exceptionThrowingLedger).rollback(posting);
 		assertThat(transaction.getStatus(), equalTo(TransactionStatus.INTERNAL_ERROR));
 	}
@@ -203,19 +203,19 @@ public class BaseLedgerTests {
 	public void whenExceptionIsThrownDuringHold_that_transactionIsRolledBack()
 	{
 		Ledger exceptionThrowingLedger = mock(Ledger.class);
-		when(exceptionThrowingLedger.hold(any(Posting.class))).thenThrow(NullPointerException.class);
+		when(exceptionThrowingLedger.hold(any(LedgerPost.class))).thenThrow(NullPointerException.class);
 		when(testAccount.getLedger()).thenReturn(exceptionThrowingLedger);
-		when(exceptionThrowingLedger.canRollback(any(Posting.class))).thenReturn(true);
+		when(exceptionThrowingLedger.canRollback(any(LedgerPost.class))).thenReturn(true);
 		FinancialTransaction transaction = controller.commit(TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)
 				.amount(AUD(1000)));
-		Posting posting = transaction.getPostingFor(exceptionThrowingLedger);
+		LedgerPost posting = transaction.getPostingFor(exceptionThrowingLedger);
 		verify(exceptionThrowingLedger).rollback(posting);
 		assertThat(transaction.getStatus(), equalTo(TransactionStatus.INTERNAL_ERROR));
 	}
 	private void hold(FinancialTransaction transaction) {
-		for (Posting posting : transaction.getPostings())
+		for (LedgerPost posting : transaction.getPostings())
 		{
 			posting.hold();
 		}

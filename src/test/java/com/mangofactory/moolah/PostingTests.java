@@ -12,11 +12,11 @@ public class PostingTests {
 	public void debitAndCreditConstructorsAreAppliedCorrectly()
 	{
 		Ledger ledger = mock(Ledger.class);
-		Posting posting = Posting.debitOf(AUD(1), ledger);
+		LedgerPost posting = LedgerPost.debitOf(AUD(1), ledger);
 		assertThat(posting.isCredit(), is(false));
 		assertThat(posting.isDebit(), is(true));
 
-		posting = Posting.creditOf(AUD(1), ledger);
+		posting = LedgerPost.creditOf(AUD(1), ledger);
 		assertThat(posting.isCredit(), is(true));
 		assertThat(posting.isDebit(), is(false));
 	}

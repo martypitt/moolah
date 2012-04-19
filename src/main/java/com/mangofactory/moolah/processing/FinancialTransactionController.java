@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mangofactory.moolah.FinancialTransaction;
-import com.mangofactory.moolah.Posting;
+import com.mangofactory.moolah.LedgerPost;
 import com.mangofactory.moolah.Transactable;
 import com.mangofactory.moolah.TransactionBuilder;
 import com.mangofactory.moolah.TransactionStatus;
@@ -76,7 +76,7 @@ public class FinancialTransactionController {
 	 */
 	public void hold(FinancialTransaction transaction) {
 		TransactionStatus transactionStatus = transaction.getStatus();
-		for (Posting posting : transaction.getPostings())
+		for (LedgerPost posting : transaction.getPostings())
 		{
 			try
 			{
@@ -118,7 +118,7 @@ public class FinancialTransactionController {
 		if (!transaction.getStatus().equals(TransactionStatus.HELD))
 			throw new IllegalStateException("Transaction must be held before committing");
 		TransactionStatus status = transaction.getStatus();
-		for (Posting posting : transaction.getPostings())
+		for (LedgerPost posting : transaction.getPostings())
 		{
 			try
 			{
@@ -146,7 +146,7 @@ public class FinancialTransactionController {
 		if (transaction.getStatus().equals(TransactionStatus.NOT_STARTED))
 			return;
 		
-		for (Posting posting : transaction.getPostings())
+		for (LedgerPost posting : transaction.getPostings())
 		{
 			posting.rollbackIfPossible();
 		}

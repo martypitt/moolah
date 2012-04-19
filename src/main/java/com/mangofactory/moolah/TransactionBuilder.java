@@ -100,8 +100,8 @@ public class TransactionBuilder {
 	}
 	PostingSet createPostings() {
 		PostingSet postings = new PostingSet(amount.getCurrencyUnit());
-		postings.add(Posting.debitOf(amount,debitEntity.getLedger()));
-		postings.add(Posting.creditOf(amount,creditEntity.getLedger()));
+		postings.add(LedgerPost.debitOf(amount,debitEntity.getLedger()));
+		postings.add(LedgerPost.creditOf(amount,creditEntity.getLedger()));
 		return postings;
 	}
 	private String getId() {

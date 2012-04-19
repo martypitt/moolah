@@ -36,7 +36,7 @@ public class FinancialTransaction implements Transactable {
 	
 	@OneToMany(mappedBy="transaction",fetch=FetchType.EAGER)
 	@Immutable
-	private Set<Posting> postings;
+	private Set<LedgerPost> postings;
 	
 	private Money value;
 	
@@ -47,24 +47,24 @@ public class FinancialTransaction implements Transactable {
 		setStatus(status);
 		this.value = postings.sumCreditsOnly();
 	}
-	private void setPostings(Set<Posting> postings) {
+	private void setPostings(Set<LedgerPost> postings) {
 		this.postings = postings;
-		for (Posting posting : postings) {
+		for (LedgerPost posting : postings) {
 			posting.setTransaction(this);
 		}
 	}
 	protected FinancialTransaction() {} // For Persistence
 
-	public Posting getPostingFor(Ledger leger)
+	public LedgerPost getPostingFor(Ledger leger)
 	{
-		for (Posting posting : postings)
+		for (LedgerPost posting : postings)
 		{
 			if (posting.getLedger().equals(leger))
 				return posting;
 		}
 		return null;
 	}
-	public Posting getPostingFor(Account account)
+	public LedgerPost getPostingFor(Account account)
 	{
 		return getPostingFor(account.getLedger());
 	}
@@ -89,7 +89,7 @@ public class FinancialTransaction implements Transactable {
 			return -1;
 		return statuses.last().getOrdinal();
 	}
-	public Set<Posting> getPostings()
+	public Set<LedgerPost> getPostings()
 	{
 		return Collections.unmodifiableSet(postings);
 	}
