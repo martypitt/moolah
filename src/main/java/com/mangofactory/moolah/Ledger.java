@@ -7,7 +7,7 @@ public interface Ledger {
 
 	Money getBalance();
 	Money getAvailableBalance();
-	PostingSet getTransactions();
+	PostingSet getPostings();
 	CurrencyUnit getCurrency();
 	TransactionStatus hold(Posting posting);
 	boolean hasSufficientFunds(Posting posting);

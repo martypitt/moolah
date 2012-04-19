@@ -47,7 +47,10 @@ public class Posting {
 		this.value = value;
 		this.ledger = ledger;
 	}
-	
+	public Account getAccount()
+	{
+		return ledger.getAccount();
+	}
 	public boolean isDebit()
 	{
 		return value.isNegative();

@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import com.mangofactory.moolah.persistence.AbstractPersistentLedger;
 
 @Entity
-public class FinancialTransaction {
+public class FinancialTransaction implements Transactable {
 	
 	@Id
 	private String transactionId;
@@ -55,13 +55,6 @@ public class FinancialTransaction {
 	}
 	protected FinancialTransaction() {} // For Persistence
 
-	@SuppressWarnings("unused")
-	@PrePersist
-	private void beforePersist()
-	{
-		assertTransactionBalances();
-	}
-	
 	public Posting getPostingFor(Ledger leger)
 	{
 		for (Posting posting : postings)
@@ -71,10 +64,10 @@ public class FinancialTransaction {
 		}
 		return null;
 	}
-	private void assertTransactionBalances() {
-		throw new NotImplementedException();
+	public Posting getPostingFor(Account account)
+	{
+		return getPostingFor(account.getLedger());
 	}
-	
 	@SuppressWarnings("unused") // For JPA
 	private void setTransactionId(String value)
 	{
@@ -124,6 +117,11 @@ public class FinancialTransaction {
 	private void assertIsValidNextStatus(TransactionStatus newStatus) {
 		// TODO Auto-generated method stub
 	}
+	
+	public Money getValue()
+	{
+		return value;
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -147,5 +145,9 @@ public class FinancialTransaction {
 		} else if (!transactionId.equals(other.transactionId))
 			return false;
 		return true;
+	}
+	@Override
+	public FinancialTransaction getTransaction() {
+		return this;
 	}
 }

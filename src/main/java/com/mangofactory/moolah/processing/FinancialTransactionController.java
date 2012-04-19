@@ -26,7 +26,7 @@ public class FinancialTransactionController {
 	 * 
 	 * @param transaction
 	 */
-	public TransactionStatus commit(FinancialTransaction transaction)
+	public void commit(FinancialTransaction transaction)
 	{
 		synchronized (transaction) {
 			if (transaction.getStatus().isErrorState())
@@ -38,11 +38,11 @@ public class FinancialTransactionController {
 				hold(transaction);
 			
 			if (transaction.getStatus().isErrorState())
-				return transaction.getStatus();
+				return;
 			
 			internalCommit(transaction);	
 		}
-		return transaction.getStatus();
+		return;
 	}
 	public void commit(Collection<? extends Transactable> transactables)
 	{

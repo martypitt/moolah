@@ -187,7 +187,7 @@ public class BaseLedger implements Ledger {
 		postings = new PostingSet(currency,value);
 	}
 	@Transient
-	public PostingSet getTransactions()
+	public PostingSet getPostings()
 	{
 		return postings;
 	}
