@@ -26,8 +26,6 @@ public class PostingSet extends ForwardingSet<Posting> {
 	/**
 	 * Returns the sum of all the transactions - both debits and credits.
 	 * 
-	 * If no transactions are present, then null is returned.
-	 * 
 	 * @param currencyUnit
 	 * @return
 	 */
@@ -38,6 +36,10 @@ public class PostingSet extends ForwardingSet<Posting> {
 			value = value.plus(posting.getValue());
 		}
 		return value;
+	}
+	public boolean isBalanced()
+	{
+		return sum().isZero();
 	}
 	public Money sumDebitsOnly()
 	{
@@ -55,5 +57,13 @@ public class PostingSet extends ForwardingSet<Posting> {
 	public Set<Posting> asSet()
 	{
 		return new HashSet<Posting>(this);
+	}
+	public Money sumCreditsOnly() {
+		Money value = Money.zero(currencyUnit);
+		for (Posting posting : this) {
+			if (posting.isCredit())
+				value = value.plus(posting.getValue());
+		}
+		return value;
 	}
 }

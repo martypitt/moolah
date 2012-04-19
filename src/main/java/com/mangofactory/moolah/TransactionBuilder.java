@@ -10,6 +10,7 @@ import java.util.Set;
 import org.joda.money.Money;
 
 import com.mangofactory.entity.identity.IdentityGenerator;
+import com.mangofactory.moolah.exception.UnbalancedTransactionException;
 
 public class TransactionBuilder {
 
@@ -69,8 +70,19 @@ public class TransactionBuilder {
 	private Collection<TransactionValidationError> validate()
 	{
 		ArrayList<TransactionValidationError> errors = new ArrayList<TransactionValidationError>();
-		// TODO...
+		validateTransactionsAreInSameCurrency(errors);
+		validateHasDebitAndCredit(errors);
 		return errors;
+	}
+	private void validateHasDebitAndCredit(
+			ArrayList<TransactionValidationError> errors) {
+		// TODO Auto-generated method stub
+		
+	}
+	private void validateTransactionsAreInSameCurrency(
+			ArrayList<TransactionValidationError> errors) {
+		// TODO Auto-generated method stub
+		
 	}
 	public FinancialTransaction build()
 	{
@@ -78,11 +90,16 @@ public class TransactionBuilder {
 		{
 			throw new IllegalStateException("The builder is not valid.  Check isValid or getValidationErrors before attempting to build");
 		}
-		Set<Posting> postings = createPostings();
+		PostingSet postings = createPostings();
+		if (!postings.isBalanced())
+		{
+			throw new UnbalancedTransactionException();
+		}
+					
 		return new FinancialTransaction(getId(), postings, TransactionStatus.NOT_STARTED);
 	}
-	Set<Posting> createPostings() {
-		Set<Posting> postings = new HashSet<Posting>();
+	PostingSet createPostings() {
+		PostingSet postings = new PostingSet(amount.getCurrencyUnit());
 		postings.add(Posting.debitOf(amount,debitEntity.getLedger()));
 		postings.add(Posting.creditOf(amount,creditEntity.getLedger()));
 		return postings;

@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PostPersist;
 import javax.persistence.PrePersist;
 import javax.persistence.Transient;
 
@@ -33,15 +34,18 @@ public class FinancialTransaction {
 	@Transient // For now
 	private TreeSet<TransactionStatusRecord> statuses = new TreeSet<TransactionStatusRecord>();
 	
-	@OneToMany(mappedBy="transaction")
+	@OneToMany(mappedBy="transaction",fetch=FetchType.EAGER)
 	@Immutable
 	private Set<Posting> postings;
 	
-	public FinancialTransaction(String transactionId, Set<Posting> postings, TransactionStatus status)
+	private Money value;
+	
+	public FinancialTransaction(String transactionId, PostingSet postings, TransactionStatus status)
 	{
 		this.transactionId = transactionId;
 		setPostings(postings);
 		setStatus(status);
+		this.value = postings.sumCreditsOnly();
 	}
 	private void setPostings(Set<Posting> postings) {
 		this.postings = postings;
