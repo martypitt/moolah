@@ -76,6 +76,7 @@ public class FinancialTransactionController {
 	 */
 	public void hold(FinancialTransaction transaction) {
 		TransactionStatus transactionStatus = transaction.getStatus();
+		Exception transactionError = null;
 		for (LedgerPost posting : transaction.getLedgerPosts())
 		{
 			try
@@ -84,11 +85,16 @@ public class FinancialTransactionController {
 			} catch (Exception e)
 			{
 				log.error("Error thrown when processing hold",e);
+				transactionError = e;
 				transactionStatus = TransactionStatus.INTERNAL_ERROR;
 			}
 			if (transactionStatus.isErrorState())
 			{
 				transaction.setStatus(transactionStatus);
+				if (transactionError != null)
+				{
+					transaction.setErrorMessage(transactionError.getMessage());
+				}
 				rollback(transaction);
 				break;
 			}

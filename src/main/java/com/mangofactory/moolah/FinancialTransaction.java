@@ -36,6 +36,9 @@ public class FinancialTransaction implements Transactable {
 	@Getter @Setter(AccessLevel.PRIVATE)
 	private DateTime transactionDate;
 	
+	@Getter @Setter
+	private String errorMessage;
+	
 	public FinancialTransaction(String transactionId, PostingSet postings, TransactionStatus status, DateTime transactionDate, String description)
 	{
 		this.transactionId = transactionId;

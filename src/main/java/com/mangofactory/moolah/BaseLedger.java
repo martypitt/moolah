@@ -125,7 +125,7 @@ public class BaseLedger implements Ledger {
 		}
 		uncommittedPostings.add(posting);
 		// TODO ... hold it, somehow
-		return TransactionStatus.HELD;
+		return TransactionStatus.HELD; 
 	}
 
 

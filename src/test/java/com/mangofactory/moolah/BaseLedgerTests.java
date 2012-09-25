@@ -50,15 +50,17 @@ public class BaseLedgerTests {
 		assertThat(cashAccount.getLedger().getBalance(),equalTo(Money.zero(AUD)));
 	}
 
-	@Test(expected=IncorrectCurrencyException.class)
-	public void whenAddingTransactionOfWrongCurrency_that_exceptionIsThrown()
+	@Test
+	public void whenAddingTransactionOfWrongCurrency_that_transactionIsCancelled()
 	{
 		FinancialTransaction transaction = TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)
 				.amount(Money.of(USD,10))
 				.build();
-		hold(transaction);
+		controller.hold(transaction);
+		assertThat(transaction.getStatus(), equalTo(TransactionStatus.INTERNAL_ERROR));
+		assertThat(transaction.getErrorMessage(),equalTo("Incorrect currency.  Expected AUD but got USD"));
 	}
 
 	@Test(expected=IllegalStateException.class)
@@ -70,7 +72,7 @@ public class BaseLedgerTests {
 				.credit(cashAccount)
 				.amount(Money.of(AUD,10))
 				.build();
-		hold(transaction);
+		controller.hold(transaction);
 	}
 
 	@Test(expected=IncorrectAccountException.class)
@@ -214,6 +216,4 @@ public class BaseLedgerTests {
 		verify(exceptionThrowingLedger).rollback(posting);
 		assertThat(transaction.getStatus(), equalTo(TransactionStatus.INTERNAL_ERROR));
 	}
-	private void hold(FinancialTransaction transaction) {
-	}	
 }
