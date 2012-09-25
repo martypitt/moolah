@@ -112,4 +112,9 @@
 			</plugin>
 		</plugins>
 	</build>
+	<parent>
+		<groupId>com.mangofactory</groupId>
+		<artifactId>root</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
 </project>
