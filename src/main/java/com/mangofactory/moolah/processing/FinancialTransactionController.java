@@ -76,7 +76,7 @@ public class FinancialTransactionController {
 	 */
 	public void hold(FinancialTransaction transaction) {
 		TransactionStatus transactionStatus = transaction.getStatus();
-		for (LedgerPost posting : transaction.getPostings())
+		for (LedgerPost posting : transaction.getLedgerPosts())
 		{
 			try
 			{
@@ -118,7 +118,7 @@ public class FinancialTransactionController {
 		if (!transaction.getStatus().equals(TransactionStatus.HELD))
 			throw new IllegalStateException("Transaction must be held before committing");
 		TransactionStatus status = transaction.getStatus();
-		for (LedgerPost posting : transaction.getPostings())
+		for (LedgerPost posting : transaction.getLedgerPosts())
 		{
 			try
 			{
@@ -146,7 +146,7 @@ public class FinancialTransactionController {
 		if (transaction.getStatus().equals(TransactionStatus.NOT_STARTED))
 			return;
 		
-		for (LedgerPost posting : transaction.getPostings())
+		for (LedgerPost posting : transaction.getLedgerPosts())
 		{
 			posting.rollbackIfPossible();
 		}

@@ -1,5 +1,6 @@
 package com.mangofactory.moolah;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.joda.money.Money;
@@ -8,7 +9,10 @@ import com.google.common.collect.ForwardingSet;
 
 public class FinancialTransactionSet extends ForwardingSet<FinancialTransaction> {
 	private Set<FinancialTransaction> delegate;
-	
+	public FinancialTransactionSet()
+	{
+		this.delegate = new HashSet<FinancialTransaction>();
+	}
 	@Override
 	protected Set<FinancialTransaction> delegate() {
 		return delegate;

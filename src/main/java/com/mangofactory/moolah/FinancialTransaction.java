@@ -1,6 +1,7 @@
 package com.mangofactory.moolah;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -8,41 +9,38 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.PostPersist;
-import javax.persistence.PrePersist;
 import javax.persistence.Transient;
 
-import org.apache.commons.lang.NotImplementedException;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hibernate.annotations.Immutable;
-import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-
-import com.google.common.collect.ImmutableSet;
-import com.mangofactory.moolah.persistence.AbstractPersistentLedger;
 
 @Entity
 public class FinancialTransaction implements Transactable {
 	
-	@Id
 	private String transactionId;
-	@Transient // For now
+//	@Transient // For now
 	private TreeSet<TransactionStatusRecord> statuses = new TreeSet<TransactionStatusRecord>();
 	
-	@OneToMany(mappedBy="transaction",fetch=FetchType.EAGER)
-	@Immutable
 	private Set<LedgerPost> postings;
-	
+	@Getter @Setter(AccessLevel.PRIVATE)
 	private Money value;
 	
-	public FinancialTransaction(String transactionId, PostingSet postings, TransactionStatus status)
+	@Getter @Setter(AccessLevel.PRIVATE)
+	private String description;
+	@Getter @Setter(AccessLevel.PRIVATE)
+	private DateTime transactionDate;
+	
+	public FinancialTransaction(String transactionId, PostingSet postings, TransactionStatus status, DateTime transactionDate, String description)
 	{
 		this.transactionId = transactionId;
+		this.transactionDate = transactionDate;
+		this.description = description;
 		setPostings(postings);
 		setStatus(status);
 		this.value = postings.sumCreditsOnly();
@@ -53,7 +51,9 @@ public class FinancialTransaction implements Transactable {
 			posting.setTransaction(this);
 		}
 	}
-	protected FinancialTransaction() {} // For Persistence
+	protected FinancialTransaction() {
+		this.postings = new HashSet<LedgerPost>();
+	} // For Persistence
 
 	public LedgerPost getPostingFor(Ledger leger)
 	{
@@ -89,9 +89,23 @@ public class FinancialTransaction implements Transactable {
 			return -1;
 		return statuses.last().getOrdinal();
 	}
-	public Set<LedgerPost> getPostings()
+	
+	@Transient
+	public Set<LedgerPost> getLedgerPosts()
 	{
 		return Collections.unmodifiableSet(postings);
+	}
+	@SuppressWarnings("unused") // for JPA
+	@Immutable
+	@OneToMany(mappedBy="transaction",fetch=FetchType.EAGER,targetEntity=LedgerPost.class, cascade=CascadeType.ALL)
+	private Set<LedgerPost> getPersistentLedgerPosts()
+	{
+		return postings;
+	}
+	@SuppressWarnings("unused") // for JPA
+	private void setPersistentLedgerPosts(Set<LedgerPost> value)
+	{
+		postings = value;
 	}
 	public void setStatus(TransactionStatus status) {
 		setStatus(status,DateTime.now());
@@ -105,7 +119,6 @@ public class FinancialTransaction implements Transactable {
 		statuses.add(statusRecord);
 	}
 	@Transient
-//	@OneToMany(fetch=FetchType.EAGER,cascade=CascadeType.ALL)
 	protected Set<TransactionStatusRecord> getStatuses()
 	{
 		return statuses;
@@ -118,10 +131,6 @@ public class FinancialTransaction implements Transactable {
 		// TODO Auto-generated method stub
 	}
 	
-	public Money getValue()
-	{
-		return value;
-	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -147,6 +156,7 @@ public class FinancialTransaction implements Transactable {
 		return true;
 	}
 	@Override
+	@Transient
 	public FinancialTransaction getTransaction() {
 		return this;
 	}

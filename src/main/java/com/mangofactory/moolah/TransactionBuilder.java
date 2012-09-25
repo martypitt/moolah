@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.Set;
 
 import org.joda.money.Money;
+import org.joda.time.DateTime;
 
 import com.mangofactory.entity.identity.IdentityGenerator;
 import com.mangofactory.moolah.exception.UnbalancedTransactionException;
@@ -24,13 +25,16 @@ public class TransactionBuilder {
 	private IdentityGenerator identityGenerator;
 	private String transactionId;
 	
+	private DateTime transactionDate;
+	private String description;
+	
 	private TransactionBuilder()
 	{
 		identityGenerator = new IdentityGenerator() {
 			private Random random = new Random();
 			@Override
 			public String getNextIdentity() {
-				return "" + random.nextLong();
+				return "" + Math.abs(random.nextInt());
 			}
 		};
 	}
@@ -47,6 +51,16 @@ public class TransactionBuilder {
 	public TransactionBuilder amount(Money amount)
 	{
 		this.amount = amount;
+		return this;
+	}
+	public TransactionBuilder withDescription(String description)
+	{
+		this.description = description;
+		return this;
+	}
+	public TransactionBuilder on(DateTime transactionDate)
+	{
+		this.transactionDate = transactionDate;
 		return this;
 	}
 	public TransactionBuilder withId(String transactionId)
@@ -95,8 +109,9 @@ public class TransactionBuilder {
 		{
 			throw new UnbalancedTransactionException();
 		}
-					
-		return new FinancialTransaction(getId(), postings, TransactionStatus.NOT_STARTED);
+		if (transactionDate == null)
+			transactionDate = DateTime.now();
+		return new FinancialTransaction(getId(), postings, TransactionStatus.NOT_STARTED, transactionDate, description);
 	}
 	PostingSet createPostings() {
 		PostingSet postings = new PostingSet(amount.getCurrencyUnit());

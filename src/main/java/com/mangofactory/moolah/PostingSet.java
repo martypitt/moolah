@@ -2,7 +2,6 @@ package com.mangofactory.moolah;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -14,7 +13,7 @@ public class PostingSet extends ForwardingSet<LedgerPost> {
 	private Set<LedgerPost> delegate;
 	private CurrencyUnit currencyUnit;
 	public PostingSet(CurrencyUnit currencyUnit) {
-		this (currencyUnit, new CopyOnWriteArraySet<LedgerPost>());
+		this (currencyUnit, new HashSet<LedgerPost>());
 	}
 	public PostingSet(CurrencyUnit currencyUnit, Set<LedgerPost> postings)
 	{

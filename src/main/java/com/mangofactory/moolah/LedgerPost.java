@@ -1,18 +1,24 @@
 package com.mangofactory.moolah;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.annotations.Immutable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
+import org.joda.time.DateTime;
 
+import com.mangofactory.json.converters.JodaMoneySerializer;
+import com.mangofactory.json.converters.JodaTimeSerializer;
 import com.mangofactory.moolah.persistence.AbstractPersistentLedger;
 
-@Entity(name="LedgerPosting")
+@Entity(name="LedgerPost")
 public class LedgerPost {
 
 	@Id @GeneratedValue(strategy=GenerationType.AUTO)
@@ -20,8 +26,12 @@ public class LedgerPost {
 	
 	private Money value;
 	
-	@ManyToOne(targetEntity=AbstractPersistentLedger.class)
+	@ManyToOne(targetEntity=AbstractPersistentLedger.class, cascade=CascadeType.ALL)
 	private Ledger ledger;
+
+	@ManyToOne @Immutable
+	private FinancialTransaction transaction;
+
 	
 	/**
 	 * Creates a Debit posting.
@@ -45,6 +55,10 @@ public class LedgerPost {
 		this.value = value;
 		this.ledger = ledger;
 	}
+	@SuppressWarnings("unused")
+	protected LedgerPost() {} 
+
+	@JsonIgnore
 	public Account getAccount()
 	{
 		return ledger.getAccount();
@@ -57,23 +71,32 @@ public class LedgerPost {
 	{
 		return !isDebit();
 	}
+	public String getDescription()
+	{
+		return transaction.getDescription();
+	}
+	@JsonSerialize(using=JodaTimeSerializer.class)
+	public DateTime getTransactionDate()
+	{
+		return transaction.getTransactionDate();
+	}
+	public String getTransactionId()
+	{
+		return transaction.getTransactionId();
+	}
+	
 	
 	/**
 	 * Debits are traditionally negative in value.
 	 * This method returns the non-negative eqivalent
 	 * @return
 	 */
+	@JsonIgnore
 	public Money getNegatedDebitValue()
 	{
 		return value.negated();
 	}
-	
-	
-	@SuppressWarnings("unused")
-	private LedgerPost() {} 
-	@ManyToOne @Immutable
-	private FinancialTransaction transaction;
-
+	@JsonIgnore
 	public FinancialTransaction getTransaction() {
 		return transaction;
 	}
@@ -84,11 +107,11 @@ public class LedgerPost {
 		
 		this.transaction = transaction;
 	}
-
+	@JsonSerialize(using=JodaMoneySerializer.class)
 	public Money getValue() {
 		return value;
 	}
-
+	@JsonIgnore
 	public Ledger getLedger() {
 		return ledger;
 	}
@@ -96,7 +119,7 @@ public class LedgerPost {
 	public TransactionStatus getTransactionStatus() {
 		return transaction.getStatus();
 	}
-
+	@JsonIgnore
 	public CurrencyUnit getCurrencyUnit() {
 		return value.getCurrencyUnit();
 	}

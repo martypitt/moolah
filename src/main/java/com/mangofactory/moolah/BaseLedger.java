@@ -3,9 +3,11 @@ package com.mangofactory.moolah;
 import java.math.BigDecimal;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.FetchType;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
+import javax.persistence.PostLoad;
 import javax.persistence.Transient;
 
 import org.joda.money.CurrencyUnit;
@@ -17,24 +19,33 @@ import com.mangofactory.moolah.exception.IncorrectCurrencyException;
 @MappedSuperclass
 public class BaseLedger implements Ledger {
 
-	private BigDecimal balance;
+	private Money balance;
 
 	private CurrencyUnit currency;
 	private PostingSet postings;
-	private final PostingSet uncommittedPostings;
+	private PostingSet uncommittedPostings;
 	private Account account;
 
 	public BaseLedger(CurrencyUnit currency,Account account) {
 		this.currency = currency;
 		this.account = account;
-		this.postings = new PostingSet(currency);
+		if (currency != null)
+		{
+			this.postings = new PostingSet(currency);
+			this.uncommittedPostings = new PostingSet(currency);
+			this.balance = Money.zero(currency);	
+		}
+	}
+	
+	@PostLoad
+	private void afterLoaded()
+	{
 		this.uncommittedPostings = new PostingSet(currency);
-		this.balance = BigDecimal.ZERO;
 	}
 
 	@Override
 	public Money getBalance() {
-		return Money.of(getCurrency(),balance);
+		return balance;
 	}
 	@Override
 	@Transient
@@ -54,7 +65,7 @@ public class BaseLedger implements Ledger {
 	@SuppressWarnings("unused") // for JPA
 	private void setBalance(Money balance)
 	{
-		this.balance = balance.getAmount();
+		this.balance = balance;
 	}
 	@Override
 	public TransactionStatus hold(LedgerPost posting)
@@ -96,7 +107,7 @@ public class BaseLedger implements Ledger {
 	}
 	private void doInternalPost(LedgerPost posting)
 	{
-		this.balance = balance.add(posting.getValue().getAmount());
+		this.balance = balance.plus(posting.getValue());
 	}
 
 

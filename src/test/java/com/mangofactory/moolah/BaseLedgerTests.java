@@ -215,9 +215,5 @@ public class BaseLedgerTests {
 		assertThat(transaction.getStatus(), equalTo(TransactionStatus.INTERNAL_ERROR));
 	}
 	private void hold(FinancialTransaction transaction) {
-		for (LedgerPost posting : transaction.getPostings())
-		{
-			posting.hold();
-		}
 	}	
 }
