@@ -3,7 +3,7 @@ package com.mangofactory.moolah;
 public enum TransactionStatus {
 
 	NOT_STARTED(false),
-	ENQUIRY_ONLY(false),
+	VALID_ENQUIRY(false),
 	HELD(false),
 	REJECTED_INSUFFICIENT_FUNDS(true),
 	INVALID(true),

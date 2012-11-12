@@ -1,10 +1,12 @@
 package com.mangofactory.moolah.processing;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.mangofactory.moolah.FinancialTransaction;
 import com.mangofactory.moolah.LedgerPost;
 import com.mangofactory.moolah.Transactable;
@@ -26,33 +28,35 @@ public class FinancialTransactionController {
 	 * 
 	 * @param transaction
 	 */
-	public void commit(FinancialTransaction transaction)
+	public TransactionStatus commit(FinancialTransaction transaction)
 	{
 		synchronized (transaction) {
 			if (transaction.getStatus().isErrorState())
-			{
-				throw new FailedTransactionException(transaction.getStatus());
-			}
+				return transaction.getStatus();
 			
 			if (transaction.getStatus().equals(TransactionStatus.NOT_STARTED))
 				hold(transaction);
 			
 			if (transaction.getStatus().isErrorState())
-				return;
+				return transaction.getStatus();
 			
 			internalCommit(transaction);	
 		}
-		return;
+		return transaction.getStatus();
 	}
-	public void commit(Collection<? extends Transactable> transactables)
+	public TransactionSet commit(Collection<? extends Transactable> transactables)
 	{
+		TransactionSet transactionSet = new TransactionSet();
 		for (Transactable transactable : transactables) {
-			commit(transactable);
+			FinancialTransaction transaction = transactable.getTransaction();
+			transactionSet.add(transaction);
+			commit(transaction);
 		}
+		return transactionSet;
 	}
-	public void commit(Transactable transactable)
+	public TransactionStatus commit(Transactable transactable)
 	{
-		commit(transactable.getTransaction());
+		return commit(transactable.getTransaction());
 	}
 	
 	public FinancialTransaction commit(TransactionBuilder builder)
@@ -61,8 +65,28 @@ public class FinancialTransactionController {
 		commit(transaction);
 		return transaction;
 	}
+	public TransactionSet hold(Collection<? extends Transactable> transactables)
+	{
+		TransactionSet processed = new TransactionSet();
+		for (Transactable transactable : transactables)
+		{
+			FinancialTransaction transaction = transactable.getTransaction();
+			hold(transaction);
+			processed.add(transaction);
+			if (transaction.getStatus().isErrorState())
+			{
+				rollbackAll(processed);
+				break;
+			}
+		}
+		return processed;
+	}
 	
-	
+	private void rollbackAll(Collection<FinancialTransaction> transactions) {
+		for (FinancialTransaction financialTransaction : transactions) {
+			rollback(financialTransaction);
+		}
+	}
 	/**
 	 * Applies the transaction to the two ledgers,
 	 * placing the funds into a 'held' state.

@@ -1,18 +1,25 @@
 package com.mangofactory.moolah.processing;
 
-import com.mangofactory.moolah.TransactionStatus;
-
 public class FailedTransactionException extends RuntimeException {
 
-	private final TransactionStatus status;
-
-	public FailedTransactionException(TransactionStatus status) {
-		super(status.name());
-		this.status = status;
+	public FailedTransactionException() {
+		super();
+		// TODO Auto-generated constructor stub
 	}
 
-	public TransactionStatus getStatus() {
-		return status;
+	public FailedTransactionException(String arg0, Throwable arg1) {
+		super(arg0, arg1);
+		// TODO Auto-generated constructor stub
+	}
+
+	public FailedTransactionException(String arg0) {
+		super(arg0);
+		// TODO Auto-generated constructor stub
+	}
+
+	public FailedTransactionException(Throwable arg0) {
+		super(arg0);
+		// TODO Auto-generated constructor stub
 	}
 
 }
