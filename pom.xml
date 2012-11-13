@@ -69,6 +69,13 @@
 			<version>${query.dsl.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.mysema.querydsl</groupId>
+			<artifactId>querydsl-apt</artifactId>
+			<version>${query.dsl.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
 			<groupId>com.mangofactory</groupId>
 			<artifactId>cross-store-support</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
