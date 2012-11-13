@@ -4,7 +4,7 @@
 	<artifactId>moolah</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
-		<query.dsl.version>2.8.2</query.dsl.version>
+		<query.dsl.version>2.8.1</query.dsl.version>
 	</properties>
 	<dependencies>
 		<dependency>
