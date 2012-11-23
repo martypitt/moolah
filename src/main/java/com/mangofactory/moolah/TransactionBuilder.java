@@ -22,21 +22,12 @@ public class TransactionBuilder {
 	private Account debitEntity;
 	private Account creditEntity;
 	private Money amount;
-	private IdentityGenerator identityGenerator;
-	private String transactionId;
 	
 	private DateTime transactionDate;
 	private String description;
 	
 	private TransactionBuilder()
 	{
-		identityGenerator = new IdentityGenerator() {
-			private Random random = new Random();
-			@Override
-			public String getNextIdentity() {
-				return "" + Math.abs(random.nextInt());
-			}
-		};
 	}
 	public TransactionBuilder debit(Account entity)
 	{
@@ -61,16 +52,6 @@ public class TransactionBuilder {
 	public TransactionBuilder on(DateTime transactionDate)
 	{
 		this.transactionDate = transactionDate;
-		return this;
-	}
-	public TransactionBuilder withId(String transactionId)
-	{
-		this.transactionId = transactionId;
-		return this;
-	}
-	public TransactionBuilder withIdentityGenerator(IdentityGenerator identityGenerator)
-	{
-		this.identityGenerator = identityGenerator;
 		return this;
 	}
 	public boolean isValid()
@@ -111,18 +92,13 @@ public class TransactionBuilder {
 		}
 		if (transactionDate == null)
 			transactionDate = DateTime.now();
-		return new FinancialTransaction(getId(), postings, TransactionStatus.NOT_STARTED, transactionDate, description);
+		return new FinancialTransaction(postings, TransactionStatus.NOT_STARTED, transactionDate, description);
 	}
 	PostingSet createPostings() {
 		PostingSet postings = new PostingSet(amount.getCurrencyUnit());
 		postings.add(LedgerPost.debitOf(amount,debitEntity.getLedger()));
 		postings.add(LedgerPost.creditOf(amount,creditEntity.getLedger()));
 		return postings;
-	}
-	private String getId() {
-		if (transactionId != null)
-			return transactionId;
-		return identityGenerator.getNextIdentity();
 	}
 	
 	

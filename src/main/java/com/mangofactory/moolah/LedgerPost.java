@@ -7,6 +7,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.annotations.Immutable;
@@ -22,6 +24,7 @@ import com.mangofactory.moolah.persistence.AbstractPersistentLedger;
 public class LedgerPost {
 
 	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Getter
 	private Long id;
 	
 	private Money value;
@@ -80,7 +83,7 @@ public class LedgerPost {
 	{
 		return transaction.getTransactionDate();
 	}
-	public String getTransactionId()
+	public Long getTransactionId()
 	{
 		return transaction.getTransactionId();
 	}

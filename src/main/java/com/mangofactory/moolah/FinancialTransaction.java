@@ -8,8 +8,11 @@ import java.util.TreeSet;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
 
 import lombok.AccessLevel;
@@ -21,12 +24,19 @@ import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 @Entity
-public class FinancialTransaction implements Transactable {
-	
-	private String transactionId;
-//	@Transient // For now
+public class FinancialTransaction implements Transactable  {
+	@Id
+	@TableGenerator(name="tg", table="pk_table",
+			pkColumnName="name", valueColumnName="value", initialValue=1000,
+			allocationSize=20
+			)
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	@Getter 
+	private Long transactionId;
+
+	@Transient // For now
 	private TreeSet<TransactionStatusRecord> statuses = new TreeSet<TransactionStatusRecord>();
-	
+	@OneToMany(cascade=CascadeType.ALL)
 	private Set<LedgerPost> postings;
 	@Getter @Setter(AccessLevel.PRIVATE)
 	private Money value;
@@ -39,9 +49,8 @@ public class FinancialTransaction implements Transactable {
 	@Getter @Setter
 	private String errorMessage;
 	
-	public FinancialTransaction(String transactionId, PostingSet postings, TransactionStatus status, DateTime transactionDate, String description)
+	public FinancialTransaction(PostingSet postings, TransactionStatus status, DateTime transactionDate, String description)
 	{
-		this.transactionId = transactionId;
 		this.transactionDate = transactionDate;
 		this.description = description;
 		setPostings(postings);
@@ -70,15 +79,6 @@ public class FinancialTransaction implements Transactable {
 	public LedgerPost getPostingFor(Account account)
 	{
 		return getPostingFor(account.getLedger());
-	}
-	@SuppressWarnings("unused") // For JPA
-	private void setTransactionId(String value)
-	{
-		this.transactionId = value;
-	}
-	@Id
-	public String getTransactionId() {
-		return transactionId;
 	}
 	@Transient
 	public TransactionStatus getStatus() {
