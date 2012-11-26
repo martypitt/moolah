@@ -1,5 +1,7 @@
 package com.mangofactory.moolah;
 
+import java.util.Comparator;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -23,6 +25,12 @@ import com.mangofactory.moolah.persistence.AbstractPersistentLedger;
 @Entity(name="LedgerPost")
 public class LedgerPost {
 
+	public static Comparator<LedgerPost> BY_DATE_DESCENDING = new Comparator<LedgerPost>() {
+		@Override
+		public int compare(LedgerPost arg0, LedgerPost arg1) {
+			return arg0.getTransactionDate().compareTo(arg1.getTransactionDate()) * -1;
+		}
+	};
 	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	@Getter
 	private Long id;
