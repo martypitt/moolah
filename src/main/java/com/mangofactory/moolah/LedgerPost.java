@@ -23,14 +23,8 @@ import com.mangofactory.json.converters.JodaTimeSerializer;
 import com.mangofactory.moolah.persistence.AbstractPersistentLedger;
 
 @Entity(name="LedgerPost")
-public class LedgerPost {
+public class LedgerPost implements Comparable<LedgerPost>{
 
-	public static Comparator<LedgerPost> BY_DATE_DESCENDING = new Comparator<LedgerPost>() {
-		@Override
-		public int compare(LedgerPost arg0, LedgerPost arg1) {
-			return arg0.getTransactionDate().compareTo(arg1.getTransactionDate()) * -1;
-		}
-	};
 	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	@Getter
 	private Long id;
@@ -153,5 +147,9 @@ public class LedgerPost {
 		{
 			ledger.rollback(this);
 		}
+	}
+	@Override
+	public int compareTo(LedgerPost arg0) {
+		return getTransactionDate().compareTo(arg0.getTransactionDate()) * -1;
 	}
 }
