@@ -25,6 +25,8 @@ public class TransactionBuilder {
 	
 	private DateTime transactionDate;
 	private String description;
+	private String invoiceReference;
+	private String authorisationCode;
 	
 	private TransactionBuilder()
 	{
@@ -47,6 +49,10 @@ public class TransactionBuilder {
 	public TransactionBuilder withDescription(String description)
 	{
 		this.description = description;
+		return this;
+	}
+	public TransactionBuilder withInvoiceDescription(String invoiceReference) {
+		this.invoiceReference = invoiceReference;
 		return this;
 	}
 	public TransactionBuilder on(DateTime transactionDate)
@@ -92,7 +98,7 @@ public class TransactionBuilder {
 		}
 		if (transactionDate == null)
 			transactionDate = DateTime.now();
-		return new FinancialTransaction(postings, TransactionStatus.NOT_STARTED, transactionDate, description);
+		return new FinancialTransaction(postings, TransactionStatus.NOT_STARTED, transactionDate, description, invoiceReference, authorisationCode);
 	}
 	PostingSet createPostings() {
 		PostingSet postings = new PostingSet(amount.getCurrencyUnit());
@@ -100,6 +106,11 @@ public class TransactionBuilder {
 		postings.add(LedgerPost.creditOf(amount,creditEntity.getLedger()));
 		return postings;
 	}
+	public TransactionBuilder withAuthorisationCode(String authorisationCode) {
+		this.authorisationCode = authorisationCode;
+		return this;
+	}
+	
 	
 	
 }

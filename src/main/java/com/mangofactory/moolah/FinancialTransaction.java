@@ -5,7 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -20,6 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Index;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
@@ -48,6 +51,20 @@ public class FinancialTransaction implements Transactable  {
 	
 	@Getter @Setter
 	private String errorMessage;
+	/**
+	 * Provided by us - sent to a gateway - when making a deposit or withdrawal.
+	 * Serves as an id that is generated before the TransactionID is known.
+	 */
+	@Getter @Column(nullable=true, unique=true)
+	@Index(name="idxInvoiceReference")
+	private String invoiceReference;
+	
+	/**
+	 * Authorisation code returned from a payment gateway to us.
+	 * Only populated for transactions that go through the payement gateway (eg., deposits & withdrawals);
+	 */
+	@Getter 
+	private String authorisationCode;
 	
 	public FinancialTransaction(PostingSet postings, TransactionStatus status, DateTime transactionDate, String description)
 	{
@@ -55,6 +72,17 @@ public class FinancialTransaction implements Transactable  {
 		this.description = description;
 		setPostings(postings);
 		setStatus(status);
+		this.value = postings.sumCreditsOnly();
+	}
+	public FinancialTransaction(PostingSet postings, TransactionStatus status, DateTime transactionDate, String description, String invoiceReference, String authCode)
+	{
+		this.transactionDate = transactionDate;
+		this.description = description;
+		this.invoiceReference = invoiceReference;
+		this.authorisationCode = authCode;
+		setPostings(postings);
+		setStatus(status);
+		
 		this.value = postings.sumCreditsOnly();
 	}
 	private void setPostings(Set<LedgerPost> postings) {
