@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
@@ -18,6 +19,7 @@ import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
 
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,7 +28,7 @@ import org.hibernate.annotations.Index;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
-@Entity
+@Entity @EqualsAndHashCode(of={"value","transactionUuid"})
 public class FinancialTransaction implements Transactable  {
 	@Id
 	@TableGenerator(name="tg", table="pk_table",
@@ -37,6 +39,9 @@ public class FinancialTransaction implements Transactable  {
 	@Getter 
 	private Long transactionId;
 
+	@Getter
+	private String transactionUuid = UUID.randomUUID().toString();
+	
 	@Transient // For now
 	private TreeSet<TransactionStatusRecord> statuses = new TreeSet<TransactionStatusRecord>();
 	@OneToMany(cascade=CascadeType.ALL)
@@ -162,30 +167,6 @@ public class FinancialTransaction implements Transactable  {
 		// TODO Auto-generated method stub
 	}
 	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((transactionId == null) ? 0 : transactionId.hashCode());
-		return result;
-	}
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		FinancialTransaction other = (FinancialTransaction) obj;
-		if (transactionId == null) {
-			if (other.transactionId != null)
-				return false;
-		} else if (!transactionId.equals(other.transactionId))
-			return false;
-		return true;
-	}
 	@Override
 	@Transient
 	public FinancialTransaction getTransaction() {

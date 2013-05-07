@@ -1,6 +1,7 @@
 package com.mangofactory.moolah;
 
 import java.util.Comparator;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -9,6 +10,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -23,11 +25,15 @@ import com.mangofactory.json.converters.JodaTimeSerializer;
 import com.mangofactory.moolah.persistence.AbstractPersistentLedger;
 
 @Entity(name="LedgerPost")
+@EqualsAndHashCode(of={"ledger","postId","transaction"})
 public class LedgerPost implements Comparable<LedgerPost>{
 
 	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	@Getter
 	private Long id;
+	
+	@Getter
+	private String postUid = UUID.randomUUID().toString();
 	
 	private Money value;
 	

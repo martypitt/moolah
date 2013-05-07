@@ -4,7 +4,7 @@
 	<artifactId>moolah</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
-		<query.dsl.version>2.8.1</query.dsl.version>
+		<querydsl.version>2.9.0</querydsl.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -66,12 +66,12 @@
 		<dependency>
 			<groupId>com.mysema.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
-			<version>${query.dsl.version}</version>
+			<version>${querydsl.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.mysema.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
-			<version>${query.dsl.version}</version>
+			<version>${querydsl.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

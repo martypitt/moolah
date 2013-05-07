@@ -3,6 +3,7 @@ package com.mangofactory.moolah;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
 import com.google.common.collect.ForwardingSet;
@@ -12,6 +13,11 @@ public class FinancialTransactionSet extends ForwardingSet<FinancialTransaction>
 	public FinancialTransactionSet()
 	{
 		this.delegate = new HashSet<FinancialTransaction>();
+	}
+	public FinancialTransactionSet(Set<FinancialTransaction> transactions)
+	{
+		this();
+		addAll(transactions);
 	}
 	@Override
 	protected Set<FinancialTransaction> delegate() {
@@ -35,5 +41,14 @@ public class FinancialTransactionSet extends ForwardingSet<FinancialTransaction>
 			}
 		}
 		return sum;
+	}
+	public Money sumOrZero(CurrencyUnit currencyUnit)
+	{
+		if (isEmpty())
+		{
+			return Money.zero(currencyUnit);
+		} else {
+			return sum();
+		}
 	}
 }

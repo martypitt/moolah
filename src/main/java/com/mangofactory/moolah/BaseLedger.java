@@ -10,6 +10,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.PostLoad;
 import javax.persistence.Transient;
 
+import lombok.EqualsAndHashCode;
+
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
@@ -17,6 +19,7 @@ import com.mangofactory.moolah.exception.IncorrectAccountException;
 import com.mangofactory.moolah.exception.IncorrectCurrencyException;
 
 @MappedSuperclass
+@EqualsAndHashCode(of={"account","balance"})
 public class BaseLedger implements Ledger {
 
 	private Money balance;
