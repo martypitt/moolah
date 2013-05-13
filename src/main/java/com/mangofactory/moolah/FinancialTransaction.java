@@ -44,8 +44,10 @@ public class FinancialTransaction implements Transactable  {
 	
 	@Transient // For now
 	private TreeSet<TransactionStatusRecord> statuses = new TreeSet<TransactionStatusRecord>();
-	@OneToMany(cascade=CascadeType.ALL)
+	
+	@OneToMany(cascade=CascadeType.ALL, mappedBy="transaction")
 	private Set<LedgerPost> postings;
+	
 	@Getter @Setter(AccessLevel.PRIVATE)
 	private Money value;
 	
