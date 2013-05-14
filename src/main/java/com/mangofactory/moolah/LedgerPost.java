@@ -1,6 +1,5 @@
 package com.mangofactory.moolah;
 
-import java.util.Comparator;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
@@ -21,11 +20,10 @@ import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 import com.mangofactory.json.converters.JodaMoneySerializer;
-import com.mangofactory.json.converters.JodaTimeSerializer;
 import com.mangofactory.moolah.persistence.AbstractPersistentLedger;
 
 @Entity(name="LedgerPost")
-@EqualsAndHashCode(of={"ledger","postId","transaction"})
+@EqualsAndHashCode(of={"postUid"})
 public class LedgerPost implements Comparable<LedgerPost>{
 
 	@Id @GeneratedValue(strategy=GenerationType.AUTO)
@@ -35,6 +33,8 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	@Getter
 	private String postUid = UUID.randomUUID().toString();
 	
+	@Getter
+	private DateTime transactionDate;
 	private Money value;
 	
 	@ManyToOne(targetEntity=AbstractPersistentLedger.class, cascade=CascadeType.ALL)
@@ -43,7 +43,6 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	@ManyToOne @Immutable
 	private FinancialTransaction transaction;
 
-	
 	/**
 	 * Creates a Debit posting.
 	 * Postings are considered to be debit if the value is less than 0.
@@ -86,11 +85,7 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	{
 		return transaction.getDescription();
 	}
-	@JsonSerialize(using=JodaTimeSerializer.class)
-	public DateTime getTransactionDate()
-	{
-		return transaction.getTransactionDate();
-	}
+	
 	public Long getTransactionId()
 	{
 		return transaction.getTransactionId();
@@ -117,6 +112,7 @@ public class LedgerPost implements Comparable<LedgerPost>{
 			throw new IllegalStateException("Transaction cannot be changed once set");
 		
 		this.transaction = transaction;
+		this.transactionDate = transaction.getTransactionDate();
 	}
 	@JsonSerialize(using=JodaMoneySerializer.class)
 	public Money getValue() {
