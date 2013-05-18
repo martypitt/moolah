@@ -7,9 +7,13 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -41,9 +45,15 @@ public class FinancialTransaction implements Transactable  {
 
 	@Getter
 	private String transactionUuid = UUID.randomUUID().toString();
-	
-	@Transient // For now
-	private TreeSet<TransactionStatusRecord> statuses = new TreeSet<TransactionStatusRecord>();
+
+	@Getter
+	@Access(AccessType.FIELD)
+	@Enumerated(EnumType.STRING)
+	private TransactionStatus status;
+
+	@Getter
+	@Access(AccessType.FIELD)
+	private DateTime statusDate;
 	
 	@OneToMany(cascade=CascadeType.ALL, mappedBy="transaction")
 	private Set<LedgerPost> postings;
@@ -115,18 +125,6 @@ public class FinancialTransaction implements Transactable  {
 	{
 		return getPostingFor(account.getLedger());
 	}
-	@Transient
-	public TransactionStatus getStatus() {
-		TransactionStatusRecord statusRecord = statuses.last();
-		return (statusRecord != null) ? statusRecord.getTransactionStatus() : null;
-	}
-	@Transient
-	private Integer getLastStatusOrdinal()
-	{
-		if (statuses.size() == 0)
-			return -1;
-		return statuses.last().getOrdinal();
-	}
 	
 	@Transient
 	public Set<LedgerPost> getLedgerPosts()
@@ -151,24 +149,9 @@ public class FinancialTransaction implements Transactable  {
 	}
 	public void setStatus(TransactionStatus status, DateTime effectiveDate)
 	{
-		assertIsValidNextStatus(status);
-		Integer ordinal = getLastStatusOrdinal() + 1;
-		TransactionStatusRecord statusRecord = new TransactionStatusRecord(status, effectiveDate, ordinal);
-		statuses.add(statusRecord);
+		this.status = status;
+		this.statusDate = effectiveDate;
 	}
-	@Transient
-	protected Set<TransactionStatusRecord> getStatuses()
-	{
-		return statuses;
-	}
-	protected void setStatuses(Set<TransactionStatusRecord> value)
-	{
-		this.statuses = new TreeSet<TransactionStatusRecord>(value);
-	}
-	private void assertIsValidNextStatus(TransactionStatus newStatus) {
-		// TODO Auto-generated method stub
-	}
-	
 	@Override
 	@Transient
 	public FinancialTransaction getTransaction() {

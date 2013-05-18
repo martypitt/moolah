@@ -14,5 +14,4 @@ public interface Ledger {
 	void rollback(LedgerPost posting);
 	TransactionStatus commit(LedgerPost posting);
 	Account getAccount();
-	boolean canRollback(LedgerPost posting);
 }

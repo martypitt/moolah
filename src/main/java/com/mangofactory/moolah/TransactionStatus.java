@@ -8,6 +8,7 @@ public enum TransactionStatus {
 	REJECTED_INSUFFICIENT_FUNDS(true),
 	INVALID(true),
 	INTERNAL_ERROR(true),
+	ROLLED_BACK(false),
 	COMPLETED(false);
 
 	private boolean isError;

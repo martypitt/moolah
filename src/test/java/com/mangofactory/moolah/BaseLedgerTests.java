@@ -1,5 +1,6 @@
 package com.mangofactory.moolah;
 
+import static com.mangofactory.moolah.TestHelpers.AUD;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.joda.money.CurrencyUnit.AUD;
 import static org.joda.money.CurrencyUnit.USD;
@@ -9,9 +10,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
-
-import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -21,9 +19,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.mangofactory.moolah.exception.IncorrectAccountException;
-import com.mangofactory.moolah.exception.IncorrectCurrencyException;
 import com.mangofactory.moolah.processing.FinancialTransactionController;
-import static com.mangofactory.moolah.TestHelpers.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BaseLedgerTests {
@@ -42,7 +38,7 @@ public class BaseLedgerTests {
 		controller = new FinancialTransactionController();
 		when(cashAccount.getLedger()).thenReturn(new CashAccountLedger(AUD, cashAccount));
 		when(testAccount.getLedger()).thenReturn(new BaseLedger(AUD, testAccount));
-		when(testAccount.getCreditLimit()).thenReturn(BigDecimal.ZERO);
+		when(testAccount.getCreditLimit()).thenReturn(AUD(0));
 	}
 	@Test
 	public void whenCreatedThatBalanceIsZero()
@@ -188,7 +184,6 @@ public class BaseLedgerTests {
 		Ledger exceptionThrowingLedger = mock(Ledger.class);
 		when(exceptionThrowingLedger.hold(any(LedgerPost.class))).thenReturn(TransactionStatus.HELD);
 		when(exceptionThrowingLedger.commit(any(LedgerPost.class))).thenThrow(NullPointerException.class);
-		when(exceptionThrowingLedger.canRollback(any(LedgerPost.class))).thenReturn(true);
 		when(testAccount.getLedger()).thenReturn(exceptionThrowingLedger);
 		
 		FinancialTransaction transaction = controller.commit(TransactionBuilder.newTransaction()
@@ -207,7 +202,6 @@ public class BaseLedgerTests {
 		Ledger exceptionThrowingLedger = mock(Ledger.class);
 		when(exceptionThrowingLedger.hold(any(LedgerPost.class))).thenThrow(NullPointerException.class);
 		when(testAccount.getLedger()).thenReturn(exceptionThrowingLedger);
-		when(exceptionThrowingLedger.canRollback(any(LedgerPost.class))).thenReturn(true);
 		FinancialTransaction transaction = controller.commit(TransactionBuilder.newTransaction()
 				.debit(cashAccount)
 				.credit(testAccount)

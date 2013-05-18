@@ -1,7 +1,5 @@
 package com.mangofactory.moolah;
 
-import java.math.BigDecimal;
-
 import lombok.Getter;
 
 import org.joda.money.CurrencyUnit;
@@ -13,8 +11,8 @@ public class SimpleAccount implements Account {
 	private Ledger ledger = new BaseLedger(CurrencyUnit.AUD, this);
 
 	@Override
-	public BigDecimal getCreditLimit() {
-		return BigDecimal.valueOf(100000D);
+	public Money getCreditLimit() {
+		return Money.of(CurrencyUnit.AUD, 0);
 	}
 
 	@Override

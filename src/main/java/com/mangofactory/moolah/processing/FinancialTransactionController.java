@@ -169,16 +169,15 @@ public class FinancialTransactionController {
 	}
 
 
-	private void rollback(FinancialTransaction transaction)
+	public void rollback(FinancialTransaction transaction)
 	{
 		if (transaction.getStatus().equals(TransactionStatus.COMPLETED))
 			throw new IllegalStateException("Cannot rollback a completed transaction");
 		if (transaction.getStatus().equals(TransactionStatus.NOT_STARTED))
-			return;
-		
+			return;		
 		for (LedgerPost posting : transaction.getLedgerPosts())
 		{
-			posting.rollbackIfPossible();
+			posting.rollback();
 		}
 	}
 

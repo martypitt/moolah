@@ -1,33 +1,48 @@
 package com.mangofactory.moolah;
 
-import java.math.BigDecimal;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.FetchType;
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.PostLoad;
 import javax.persistence.Transient;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+import org.apache.commons.lang.ObjectUtils;
+import org.hibernate.annotations.Formula;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
 import com.mangofactory.moolah.exception.IncorrectAccountException;
 import com.mangofactory.moolah.exception.IncorrectCurrencyException;
+import com.mangofactory.moolah.util.MoneyUtils;
 
 @MappedSuperclass
 @EqualsAndHashCode(of={"account","balance"})
 public class BaseLedger implements Ledger {
 
+	@Access(AccessType.FIELD)
+	@Getter
 	private Money balance;
+	private Money heldBalance;
 
 	private CurrencyUnit currency;
 	private PostingSet postings;
-	private PostingSet uncommittedPostings;
 	private Account account;
+	
+	@Access(AccessType.FIELD)
+	@Formula("select sum(post.value) from LedgerPost post where post.ledger_id = id and post.transactionStatus = 'COMPLETED'")
+	private Money calculatedBalance;
+
+	@Access(AccessType.FIELD)
+	@Formula("select sum(post.value) from LedgerPost post where post.ledger_id = id and post.transactionStatus = 'HELD'")
+	private Money calculatedHeldBalance;
+
+	
 
 	public BaseLedger(CurrencyUnit currency,Account account) {
 		this.currency = currency;
@@ -35,21 +50,32 @@ public class BaseLedger implements Ledger {
 		if (currency != null)
 		{
 			this.postings = new PostingSet(currency);
-			this.uncommittedPostings = new PostingSet(currency);
+			this.heldBalance = Money.zero(currency);
 			this.balance = Money.zero(currency);	
 		}
 	}
 	
 	@PostLoad
-	private void afterLoaded()
+	private void assertIsValid()
 	{
-		this.uncommittedPostings = new PostingSet(currency);
+		if (!MoneyUtils.areSame(calculatedBalance,getBalance()))
+		{
+			throw new IllegalStateException("The persisted balance of " + ObjectUtils.toString(getBalance(),"null") + " does not match the true, calculated balance of "+ ObjectUtils.toString(calculatedBalance,"null"));
+		}
+		if (!MoneyUtils.areSame(calculatedHeldBalance,getHeldBalance()))
+		{
+			throw new IllegalStateException("The persisted held balance of " + ObjectUtils.toString(getHeldBalance(),"null") + " does not match the true, calculated held balance of "+ ObjectUtils.toString(calculatedHeldBalance,"null"));
+		}
 	}
-
-	@Override
-	public Money getBalance() {
-		return balance;
+	
+	public Money getHeldBalance() {
+		return heldBalance;
 	}
+	@SuppressWarnings("unused") // for JPA
+	private void setHeldBalance(Money value) {
+		this.heldBalance = value;
+	}
+	
 	@Override
 	@Transient
 	/**
@@ -61,21 +87,15 @@ public class BaseLedger implements Ledger {
 	 */
 	public Money getAvailableBalance()
 	{
-		Money uncomittedPostings = uncommittedPostings.sumDebitsOnly();
 		// uncommitedPostings are a negative value, so add them.
-		return getBalance().plus(uncomittedPostings).plus(account.getCreditLimit());
-	}
-	@SuppressWarnings("unused") // for JPA
-	private void setBalance(Money balance)
-	{
-		this.balance = balance;
+		return getBalance().minus(getHeldBalance().abs()).plus(account.getCreditLimit());
 	}
 	@Override
 	public TransactionStatus hold(LedgerPost posting)
 	{
 		synchronized (this) {
 			assertCorrectCurrency(posting);
-			assertIsNotUncommittedPosting(posting);
+			assertStatus(posting, TransactionStatus.NOT_STARTED, "Transaction has already been held, but not committed");
 			assertIsForThisLedger(posting);
 			return processHold(posting);
 		}
@@ -88,10 +108,9 @@ public class BaseLedger implements Ledger {
 		
 	}
 
-	private void assertIsNotUncommittedPosting(
-			LedgerPost posting) {
-		if (uncommittedPostings.contains(posting))
-			throw new IllegalStateException("Transaction has already been held, but not committed");
+	private void assertStatus(LedgerPost posting, TransactionStatus status, String message) {
+		if (posting.getTransaction().getStatus() != status)
+			throw new IllegalStateException(message);
 	}
 
 
@@ -100,10 +119,9 @@ public class BaseLedger implements Ledger {
 	{
 		if (posting.getTransactionStatus().isErrorState())
 			throw new IllegalStateException("The transaction contains an error");
-		assertIsUncommittedTransaction(posting);
+		assertStatus(posting,TransactionStatus.HELD,"Transaction must be held before it is committed");
 		doInternalPost(posting);
 		assertIsForThisLedger(posting);
-		uncommittedPostings.remove(posting);
 		postings.add(posting);
 		return TransactionStatus.COMPLETED;
 
@@ -111,22 +129,20 @@ public class BaseLedger implements Ledger {
 	private void doInternalPost(LedgerPost posting)
 	{
 		this.balance = balance.plus(posting.getValue());
+		unhold(posting);
 	}
 
-
-	void assertIsUncommittedTransaction(LedgerPost transaction) {
-		if (!uncommittedPostings.contains(transaction))
-		{
-			throw new IllegalStateException("The supplied transaction has not been applied to this ledger");
-		}
-	}
 
 	private TransactionStatus processHold(LedgerPost posting) {
 		if (!hasSufficientFunds(posting))
 		{
 			return TransactionStatus.REJECTED_INSUFFICIENT_FUNDS;
 		}
-		uncommittedPostings.add(posting);
+		// Don't hold credits
+		if (posting.isDebit())
+		{
+			heldBalance = heldBalance.plus(posting.getValue());
+		}
 		// TODO ... hold it, somehow
 		return TransactionStatus.HELD; 
 	}
@@ -148,11 +164,16 @@ public class BaseLedger implements Ledger {
 
 	@Override
 	public void rollback(LedgerPost posting) {
-		if (uncommittedPostings.contains(posting))
+		if (posting.getTransactionStatus() == TransactionStatus.HELD)
 		{
-			uncommittedPostings.remove(posting);
-		} else {
-			throw new IllegalStateException("Posting is not in an uncommitted state on this ledger");
+			unhold(posting);
+		} // should we do stuff with unheld?
+	}
+
+	private void unhold(LedgerPost posting) {
+		if (posting.isDebit())
+		{
+			heldBalance = heldBalance.minus(posting.getValue());
 		}
 	} 
 
@@ -191,7 +212,7 @@ public class BaseLedger implements Ledger {
 	 * keep persistent transactions that have occurred after the last balance point.
 	 * @return
 	 */
-	@OneToMany(fetch=FetchType.EAGER,mappedBy="ledger")
+	@OneToMany(mappedBy="ledger")
 	protected Set<LedgerPost> getPersistentTransactions()
 	{
 		return postings.asSet();
@@ -204,10 +225,5 @@ public class BaseLedger implements Ledger {
 	public PostingSet getPostings()
 	{
 		return postings;
-	}
-	@Override
-	public boolean canRollback(LedgerPost posting)
-	{
-		return uncommittedPostings.contains(posting);
 	}
 }

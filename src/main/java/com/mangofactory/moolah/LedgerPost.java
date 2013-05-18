@@ -2,8 +2,12 @@ package com.mangofactory.moolah;
 
 import java.util.UUID;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -123,9 +127,17 @@ public class LedgerPost implements Comparable<LedgerPost>{
 		return ledger;
 	}
 
+	// Intentionally denormalizing persistence of this
+	// to prevent joins
+	@Access(AccessType.PROPERTY)
+	@Enumerated(EnumType.STRING)
 	public TransactionStatus getTransactionStatus() {
-		return transaction.getStatus();
+		return transaction == null ? null : transaction.getStatus();
 	}
+	
+	@SuppressWarnings("unused") // for JPA
+	private void setTransactionStatus(TransactionStatus value) {};
+	
 	@JsonIgnore
 	public CurrencyUnit getCurrencyUnit() {
 		return value.getCurrencyUnit();
@@ -142,13 +154,6 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	public TransactionStatus commit()
 	{
 		return ledger.commit(this);
-	}
-	public void rollbackIfPossible()
-	{
-		if (ledger.canRollback(this))
-		{
-			ledger.rollback(this);
-		}
 	}
 	@Override
 	public int compareTo(LedgerPost arg0) {

@@ -7,6 +7,6 @@ import org.joda.money.Money;
 
 public interface Account {
 	Ledger getLedger();
-	BigDecimal getCreditLimit();
+	Money getCreditLimit();
 	Money getBalance();
 }
