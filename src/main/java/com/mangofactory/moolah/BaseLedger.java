@@ -4,6 +4,9 @@ import java.util.Set;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.PostLoad;
@@ -11,6 +14,7 @@ import javax.persistence.Transient;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Formula;
@@ -35,11 +39,11 @@ public class BaseLedger implements Ledger {
 	private Account account;
 	
 	@Access(AccessType.FIELD)
-	@Formula("select sum(post.value) from LedgerPost post where post.ledger_id = id and post.transactionStatus = 'COMPLETED'")
+	@Formula("(select sum(post.value) from LedgerPost post where post.ledger_id = id and post.transactionStatus = 'COMPLETED')")
 	private Money calculatedBalance;
 
 	@Access(AccessType.FIELD)
-	@Formula("select sum(post.value) from LedgerPost post where post.ledger_id = id and post.transactionStatus = 'HELD'")
+	@Formula("(select sum(post.value) from LedgerPost post where post.ledger_id = id and post.transactionStatus = 'HELD')")
 	private Money calculatedHeldBalance;
 
 	
