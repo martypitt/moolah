@@ -210,4 +210,47 @@ public class BaseLedgerTests {
 		verify(exceptionThrowingLedger).rollback(posting);
 		assertThat(transaction.getStatus(), equalTo(TransactionStatus.INTERNAL_ERROR));
 	}
+	
+	@Test
+	public void testFilteringOfPostings()
+	{
+		controller.commit(TransactionBuilder.newTransaction()
+				.debit(cashAccount)
+				.credit(testAccount)
+				.amount(AUD(1000)));
+		controller.hold(TransactionBuilder.newTransaction()
+				.credit(cashAccount)
+				.debit(testAccount)
+				.amount(AUD(100)));
+		
+		assertThat(testAccount.getLedger().getPostings().size(), equalTo(2));
+		PostingSet heldTransactions = testAccount.getLedger().getPostings(TransactionStatus.HELD);
+		PostingSet completedTransactions = testAccount.getLedger().getPostings(TransactionStatus.COMPLETED);
+		
+		assertThat(heldTransactions.size(), equalTo(1));
+		assertThat(completedTransactions.size(), equalTo(1));
+		assertThat(heldTransactions.sum(), equalTo(Money.of(AUD, -100)));
+		assertThat(completedTransactions.sum(), equalTo(Money.of(AUD, 1000)));
+		
+		
+		// The "view" should remain 'live' -- ie., updates to the 
+		// source should be reflected in the view.
+		// Event though the filtered sets are already defined,
+		// adding new transactions to the underlying set should still be
+		// reflected in the view.
+		controller.commit(TransactionBuilder.newTransaction()
+				.debit(cashAccount)
+				.credit(testAccount)
+				.amount(AUD(1000)));
+		controller.hold(TransactionBuilder.newTransaction()
+				.credit(cashAccount)
+				.debit(testAccount)
+				.amount(AUD(100)));
+		
+		assertThat(heldTransactions.size(), equalTo(2));
+		assertThat(completedTransactions.size(), equalTo(2));
+		assertThat(heldTransactions.sum(), equalTo(Money.of(AUD, -200)));
+		assertThat(completedTransactions.sum(), equalTo(Money.of(AUD, 2000)));
+
+	}
 }

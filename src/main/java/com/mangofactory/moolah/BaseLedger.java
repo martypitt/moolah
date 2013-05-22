@@ -126,7 +126,10 @@ public class BaseLedger implements Ledger {
 		assertStatus(posting,TransactionStatus.HELD,"Transaction must be held before it is committed");
 		doInternalPost(posting);
 		assertIsForThisLedger(posting);
-		postings.add(posting);
+		if (!postings.contains(posting))
+		{
+			throw new IllegalStateException("The transaction has already been held, but is missing from the internal posting set");
+		}
 		return TransactionStatus.COMPLETED;
 
 	}
@@ -147,7 +150,7 @@ public class BaseLedger implements Ledger {
 		{
 			heldBalance = heldBalance.plus(posting.getValue());
 		}
-		// TODO ... hold it, somehow
+		postings.add(posting);
 		return TransactionStatus.HELD; 
 	}
 
@@ -229,5 +232,13 @@ public class BaseLedger implements Ledger {
 	public PostingSet getPostings()
 	{
 		return postings;
+	}
+	@Transient
+	/**
+	 * {@inheritDoc}
+	 */
+	public PostingSet getPostings(TransactionStatus status)
+	{
+		return postings.inStatus(status);
 	}
 }
