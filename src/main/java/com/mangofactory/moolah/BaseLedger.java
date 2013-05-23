@@ -64,14 +64,18 @@ public class BaseLedger implements Ledger {
 	{
 		if (!MoneyUtils.areSame(calculatedBalance,getBalance()))
 		{
-			throw new IllegalStateException("The persisted balance of " + ObjectUtils.toString(getBalance(),"null") + " does not match the true, calculated balance of "+ ObjectUtils.toString(calculatedBalance,"null"));
+			throw new IllegalStateException("The persisted balance of " + ObjectUtils.toString(getBalance(),"null") + " does not match the true, calculated balance of "+ ObjectUtils.toString(calculatedBalance,"null") + " for " + getAccountDescription());
 		}
 		if (!MoneyUtils.areSame(calculatedHeldBalance,getHeldBalance()))
 		{
-			throw new IllegalStateException("The persisted held balance of " + ObjectUtils.toString(getHeldBalance(),"null") + " does not match the true, calculated held balance of "+ ObjectUtils.toString(calculatedHeldBalance,"null"));
+			throw new IllegalStateException("The persisted held balance of " + ObjectUtils.toString(getHeldBalance(),"null") + " does not match the true, calculated held balance of "+ ObjectUtils.toString(calculatedHeldBalance,"null") + " for "  + getAccountDescription());
 		}
 	}
 	
+	private String getAccountDescription() {
+		return "account " + getAccount().getClass().getSimpleName() + " " + getAccount().getId(); 
+	}
+
 	public Money getHeldBalance() {
 		return heldBalance;
 	}

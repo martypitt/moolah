@@ -20,4 +20,9 @@ public class SimpleAccount implements Account {
 		return ledger.getBalance();
 	}
 
+	@Override
+	public Object getId() {
+		return "Simple account";
+	}
+
 }
