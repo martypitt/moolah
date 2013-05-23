@@ -71,7 +71,8 @@ public class BaseLedger implements Ledger {
 			throw new IllegalStateException("The persisted held balance of " + ObjectUtils.toString(getHeldBalance(),"null") + " does not match the true, calculated held balance of "+ ObjectUtils.toString(calculatedHeldBalance,"null") + " for "  + getAccountDescription());
 		}
 	}
-	
+
+	@Transient
 	private String getAccountDescription() {
 		return "account " + getAccount().getClass().getSimpleName() + " " + getAccount().getId(); 
 	}
