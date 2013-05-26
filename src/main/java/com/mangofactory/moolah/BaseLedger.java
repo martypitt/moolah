@@ -43,10 +43,9 @@ public class BaseLedger implements Ledger {
 	private Money calculatedBalance;
 
 	@Access(AccessType.FIELD)
-	@Formula("(select sum(post.value) from LedgerPost post where post.ledger_id = id and post.transactionStatus = 'HELD')")
+	@Formula("(select sum(post.value) from LedgerPost post " +
+			"where post.ledger_id = id and post.transactionStatus = 'HELD' and post.value < 0)")
 	private Money calculatedHeldBalance;
-
-	
 
 	public BaseLedger(CurrencyUnit currency,Account account) {
 		this.currency = currency;
