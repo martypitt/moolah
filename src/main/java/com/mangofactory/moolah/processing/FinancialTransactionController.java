@@ -179,6 +179,7 @@ public class FinancialTransactionController {
 		{
 			posting.rollback();
 		}
+		transaction.setStatus(TransactionStatus.ROLLED_BACK);
 	}
 
 	private enum TransactionSide
