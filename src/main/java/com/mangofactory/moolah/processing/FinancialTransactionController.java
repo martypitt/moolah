@@ -179,7 +179,11 @@ public class FinancialTransactionController {
 		{
 			posting.rollback();
 		}
-		transaction.setStatus(TransactionStatus.ROLLED_BACK);
+		
+		//Do not overwrite the status, if someone has already set an error status
+		if (!transaction.getStatus().isErrorState()) {
+			transaction.setStatus(TransactionStatus.ROLLED_BACK);
+		}
 	}
 
 	private enum TransactionSide
