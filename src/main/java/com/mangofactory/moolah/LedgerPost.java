@@ -157,6 +157,12 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	}
 	@Override
 	public int compareTo(LedgerPost arg0) {
-		return getTransactionDate().compareTo(arg0.getTransactionDate()) * -1;
+		int comparisonResult = getTransactionDate().compareTo(arg0.getTransactionDate()) * -1;
+		if (comparisonResult == 0)
+		{
+			return postUid.compareTo(arg0.postUid);
+		} else {
+			return comparisonResult;
+		}
 	}
 }
