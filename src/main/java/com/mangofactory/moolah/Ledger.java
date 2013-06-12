@@ -7,7 +7,7 @@ public interface Ledger {
 
 	Money getBalance();
 	Money getAvailableBalance();
-	PostingSet getPostings();
+	PostingSet getPostingSet();
 	
 	/**
 	 * Returns a 'view' of postings in the given
@@ -19,7 +19,7 @@ public interface Ledger {
 	 * @param status
 	 * @return
 	 */
-	PostingSet getPostings(TransactionStatus status);
+	PostingSet getPostingSet(TransactionStatus status);
 
 	CurrencyUnit getCurrency();
 	TransactionStatus hold(LedgerPost posting);

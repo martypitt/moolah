@@ -223,9 +223,9 @@ public class BaseLedgerTests {
 				.debit(testAccount)
 				.amount(AUD(100)));
 		
-		assertThat(testAccount.getLedger().getPostings().size(), equalTo(2));
-		PostingSet heldTransactions = testAccount.getLedger().getPostings(TransactionStatus.HELD);
-		PostingSet completedTransactions = testAccount.getLedger().getPostings(TransactionStatus.COMPLETED);
+		assertThat(testAccount.getLedger().getPostingSet().size(), equalTo(2));
+		PostingSet heldTransactions = testAccount.getLedger().getPostingSet(TransactionStatus.HELD);
+		PostingSet completedTransactions = testAccount.getLedger().getPostingSet(TransactionStatus.COMPLETED);
 		
 		assertThat(heldTransactions.size(), equalTo(1));
 		assertThat(completedTransactions.size(), equalTo(1));

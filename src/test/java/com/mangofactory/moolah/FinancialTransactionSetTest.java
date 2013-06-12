@@ -38,6 +38,5 @@ public class FinancialTransactionSetTest {
 		
 		assertThat(transactionA, not(equalTo(transactionB)));
 		assertThat(transactionA.hashCode(), not(equalTo(transactionB.hashCode())));
-		
 	}
 }

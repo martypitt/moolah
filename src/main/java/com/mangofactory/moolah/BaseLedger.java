@@ -214,26 +214,17 @@ public class BaseLedger implements Ledger {
 		this.currency = value;
 	}
 	
-	/**
-	 * TODO : Currently eagerly fetching transactions.
-	 * This is a bit mixed -- we need to know the transactions for doing
-	 * things like summing available balance, etc.
-	 * However, loading thousands of transactions is dumb.
-	 * Need to introduce something like a balance point, and we only
-	 * keep persistent transactions that have occurred after the last balance point.
-	 * @return
-	 */
 	@OneToMany(mappedBy="ledger")
-	protected Set<LedgerPost> getPersistentTransactions()
+	protected Set<LedgerPost> getPosts()
 	{
 		return postings.asSet();
 	}
-	protected void setPersistentTransactions(Set<LedgerPost> value)
+	protected void setPosts(Set<LedgerPost> value)
 	{
 		postings = new PostingSet(currency,value);
 	}
 	@Transient
-	public PostingSet getPostings()
+	public PostingSet getPostingSet()
 	{
 		return postings;
 	}
@@ -241,7 +232,7 @@ public class BaseLedger implements Ledger {
 	/**
 	 * {@inheritDoc}
 	 */
-	public PostingSet getPostings(TransactionStatus status)
+	public PostingSet getPostingSet(TransactionStatus status)
 	{
 		return postings.inStatus(status);
 	}

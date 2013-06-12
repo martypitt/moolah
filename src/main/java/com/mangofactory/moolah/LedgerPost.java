@@ -77,6 +77,13 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	{
 		return ledger.getAccount();
 	}
+	
+	@Access(AccessType.PROPERTY)
+	public TransactionSide getSide()
+	{
+		return (isCredit()) ? TransactionSide.CREDIT : TransactionSide.DEBIT;
+	}
+	private void setSide(TransactionSide value) {}
 	public boolean isDebit()
 	{
 		return value.isNegative();
