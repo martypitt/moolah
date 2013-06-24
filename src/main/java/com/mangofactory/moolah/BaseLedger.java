@@ -37,6 +37,10 @@ public class BaseLedger implements Ledger {
 	private CurrencyUnit currency;
 	private PostingSet postings;
 	private Account account;
+
+	// indicates that Hibernate has finished populating this object
+	@Transient
+	private boolean initialized;
 	
 	@Access(AccessType.FIELD)
 	@Formula("(select sum(post.value) from LedgerPost post where post.ledger_id = id and post.transactionStatus = 'COMPLETED')")
@@ -200,7 +204,7 @@ public class BaseLedger implements Ledger {
 	}
 	protected void setAccount(Account value)
 	{
-		if (this.account != null && !this.account.equals(value))
+		if (this.account != null && !this.account.equals(value) && initialized)
 		{
 			throw new IllegalStateException("Cannot change account once set");
 		}
