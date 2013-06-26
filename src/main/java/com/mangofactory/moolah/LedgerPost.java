@@ -86,7 +86,7 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	private void setSide(TransactionSide value) {}
 	public boolean isDebit()
 	{
-		return value.isNegative();
+		return getValue().isNegative();
 	}
 	public boolean isCredit()
 	{
@@ -111,7 +111,7 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	@JsonIgnore
 	public Money getNegatedDebitValue()
 	{
-		return value.negated();
+		return getValue().negated();
 	}
 	@JsonIgnore
 	public FinancialTransaction getTransaction() {
@@ -147,7 +147,7 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	
 	@JsonIgnore
 	public CurrencyUnit getCurrencyUnit() {
-		return value.getCurrencyUnit();
+		return getValue().getCurrencyUnit();
 	}
 	
 	public TransactionStatus hold()
