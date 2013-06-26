@@ -81,6 +81,11 @@ public class LedgerPost implements Comparable<LedgerPost>{
 	@Access(AccessType.PROPERTY)
 	public TransactionSide getSide()
 	{
+		// Guard clause for accessors called by JPA / Hibernate
+		// when the instance is not yet properly populated
+		if (value == null)
+			return null;
+		
 		return (isCredit()) ? TransactionSide.CREDIT : TransactionSide.DEBIT;
 	}
 	private void setSide(TransactionSide value) {}
